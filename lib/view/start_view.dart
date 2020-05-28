@@ -74,6 +74,13 @@ class _StartViewState extends State<StartView> {
                                 fontWeight: FontWeight.w500)),
                         navigateTo: EmailView(),
                       )),
+                  RaisedButton(
+                    child: const Text('DevGoToMap'),
+                    onPressed: () => Navigator.push(context,
+                        MaterialPageRoute(builder: (BuildContext context) {
+                          return MapPage();
+                        })),
+                  ),
                 ],
               ),
               Row(children: <Widget>[
