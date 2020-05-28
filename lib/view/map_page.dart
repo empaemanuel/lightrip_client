@@ -12,6 +12,7 @@ import 'package:client/view/start_view.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:google_map_location_picker/generated/i18n.dart'
     as location_picker;
+import 'package:client/custom_color.dart';
 
 class MapPage extends StatefulWidget {
   @override
@@ -115,6 +116,7 @@ class _MapPageState extends State<MapPage> {
         height: MediaQuery.of(context).size.height,
         width: MediaQuery.of(context).size.width,
         child: GoogleMap(
+          zoomControlsEnabled: false,
           mapType: MapType.normal,
           initialCameraPosition:
               CameraPosition(target: LatLng(59.3121417, 18.0911303), zoom: 18),
@@ -167,12 +169,30 @@ class _MapPageState extends State<MapPage> {
           Locale('ar', ''),
         ],
         home: Scaffold(
-          backgroundColor: new MaterialColor(0xFF191a1f, color),
+          extendBodyBehindAppBar: true,
           appBar: AppBar(
-            backgroundColor: new MaterialColor(0xFF191a1f, color),
+            leading: new Icon(Icons.menu, color: Colors.black),
+            backgroundColor: Colors.transparent,
+            elevation: 0.0,
             title: Container(
-                color: new MaterialColor(0xFFFFFFFF, color),
-                child: TextField()),
+                width: 300,
+                height: 40,
+                child: TextField(
+                  style: TextStyle(color: Colors.black),
+                  obscureText: true,
+                  decoration: InputDecoration(
+                    fillColor: Colors.white,
+                    filled: true,
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(18.0)),
+                    hintStyle: TextStyle(
+                        color: Colors.black,
+                        fontSize: 15.0,
+                        fontFamily: 'Poppins',
+                        fontWeight: FontWeight.w500),
+                    hintText: "Where to?",
+                  ),
+                )),
             actions: <Widget>[
               IconButton(
                   //this is the settings button in the top right
@@ -194,7 +214,7 @@ class _MapPageState extends State<MapPage> {
                     child: Text('User Profile',
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                            color: Colors.white,
+                            color: Colors.black,
                             fontSize: 20.0,
                             fontFamily: 'Poppins',
                             fontWeight: FontWeight.w700))),
@@ -245,14 +265,16 @@ class _MapPageState extends State<MapPage> {
             child: Center(
                 child: Stack(
               children: <Widget>[
-                Text("test"),
                 _googleMap(
                     context) //this is where we add our map object making it visible in the interface
               ],
             )),
           ),
           floatingActionButton: FloatingActionButton(
-              child: Icon(Icons.flag),
+              backgroundColor: new MaterialColor(0xFFE5305A, color),
+              child: Icon(
+                Icons.flag,
+              ),
               onPressed: () async {
                 _pickedLocation = await showLocationPicker(
                   context,

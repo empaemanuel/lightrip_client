@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:client/view/map_page.dart';
@@ -11,6 +12,10 @@ class LogInView extends StatefulWidget {
 }
 
 class _LogInViewState extends State<LogInView> {
+  final FirebaseAuth mAuth = FirebaseAuth.instance;
+  TextEditingController emailController = new TextEditingController();
+  TextEditingController passwordController = new TextEditingController();
+  TextEditingController txt = new TextEditingController();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -41,6 +46,9 @@ class _LogInViewState extends State<LogInView> {
                       width: 250,
                       height: 40,
                       child: TextField(
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Colors.black),
+                        controller: emailController,
                         decoration: InputDecoration(
                           border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(18.0)),
@@ -51,7 +59,7 @@ class _LogInViewState extends State<LogInView> {
                               fontSize: 12.0,
                               fontFamily: 'Poppins',
                               fontWeight: FontWeight.w500),
-                          hintText: "Username",
+                          hintText: "E-mail",
                         ),
                       )),
                   Container(
@@ -59,6 +67,10 @@ class _LogInViewState extends State<LogInView> {
                       width: 250,
                       height: 50,
                       child: TextField(
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Colors.black),
+                        controller: passwordController,
+                        obscureText: true,
                         decoration: InputDecoration(
                           border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(18.0)),
@@ -76,15 +88,38 @@ class _LogInViewState extends State<LogInView> {
                       padding: EdgeInsets.only(top: 20),
                       child: ButtonTheme(
                           height: 40,
-                          child: NavigationButtonWidget(
+                          child: RaisedButton(
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(18.0)),
                             color: new MaterialColor(0xFFE5305A, color),
-                            title: Text('Sign in',
+                            child: Text('Sign in',
                                 style: TextStyle(
                                     fontSize: 12.0,
                                     fontFamily: 'Poppins',
                                     fontWeight: FontWeight.w500)),
-                            navigateTo: MapPage(),
+                            onPressed: () {
+                              signInWithEmailPassword(context);
+                            },
                           ))),
+                  Container(
+                      width: 250,
+                      height: 20,
+                      color: Colors.transparent,
+                      child: TextField(
+                          decoration: new InputDecoration(
+                              border: InputBorder.none,
+                              focusedBorder: InputBorder.none,
+                              enabledBorder: InputBorder.none,
+                              errorBorder: InputBorder.none,
+                              disabledBorder: InputBorder.none,
+                              contentPadding: EdgeInsets.only(
+                                  left: 15, bottom: 11, top: 11, right: 15)),
+                          textAlign: TextAlign.center,
+                          controller: txt,
+                          style: TextStyle(
+                              fontSize: 12.0,
+                              fontFamily: 'Poppins',
+                              fontWeight: FontWeight.w500))),
                 ],
               ),
               Row(children: <Widget>[
@@ -106,10 +141,32 @@ class _LogInViewState extends State<LogInView> {
           )
         ]));
   }
+
+  void signInWithEmailPassword(BuildContext context) async {
+    FirebaseUser user;
+    try {
+      user = (await mAuth.signInWithEmailAndPassword(
+              email: emailController.text, password: passwordController.text))
+          .user;
+    } catch (e) {
+      txt.text = "Error message";
+    } finally {
+      if (user != null) {
+        print("User is signed in");
+        mapPage(context);
+      }
+    }
+  }
 }
 
 void registerPage(BuildContext context) {
   Navigator.push(context, MaterialPageRoute(builder: (BuildContext context) {
     return StartView();
+  }));
+}
+
+void mapPage(BuildContext context) {
+  Navigator.push(context, MaterialPageRoute(builder: (BuildContext context) {
+    return MapPage();
   }));
 }

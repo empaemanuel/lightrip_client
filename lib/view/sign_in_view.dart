@@ -5,6 +5,7 @@ import 'package:client/view/log_in_vjew.dart';
 import 'package:client/widgets/navigationButton_widget.dart';
 import 'package:client/view/map_page.dart';
 import 'package:client/custom_color.dart';
+import 'package:client/log_in.dart';
 
 class SignInView extends StatefulWidget {
   @override
@@ -40,28 +41,43 @@ class _SignInViewState extends State<SignInView> {
                   ButtonTheme(
                     minWidth: 250,
                     height: 40,
-                    child: NavigationButtonWidget(
+                    child: RaisedButton(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(18.0),
+                      ),
                       color: new MaterialColor(0xFF3c5899, color),
-                      title: Text('Continue with Facebook',
-                          style: TextStyle(
-                              fontSize: 12.0,
-                              fontFamily: 'Poppins',
-                              fontWeight: FontWeight.w500)),
-                      navigateTo: MapPage(),
+                      child: Text(
+                        'Continue with Facebook',
+                        style: TextStyle(
+                            fontSize: 12.0,
+                            fontFamily: 'Poppins',
+                            fontWeight: FontWeight.w500),
+                      ),
+                      onPressed: () {
+                        signInUsingFacebook(context);
+                      },
                     ),
                   ),
                   ButtonTheme(
-                      minWidth: 250,
-                      height: 40,
-                      child: NavigationButtonWidget(
-                        color: new MaterialColor(0xFFdd3521, color),
-                        title: Text('Continue with Google',
-                            style: TextStyle(
-                                fontSize: 12.0,
-                                fontFamily: 'Poppins',
-                                fontWeight: FontWeight.w500)),
-                        navigateTo: MapPage(),
-                      )),
+                    minWidth: 250,
+                    height: 40,
+                    child: RaisedButton(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(18.0),
+                      ),
+                      color: new MaterialColor(0xFFdd3521, color),
+                      child: Text(
+                        'Continue with Google',
+                        style: TextStyle(
+                            fontSize: 12.0,
+                            fontFamily: 'Poppins',
+                            fontWeight: FontWeight.w500),
+                      ),
+                      onPressed: () {
+                        signInUsingGoogle(context);
+                      },
+                    ),
+                  ),
                   ButtonTheme(
                       minWidth: 250,
                       height: 40,
