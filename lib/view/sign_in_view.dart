@@ -28,14 +28,13 @@ class _SignInViewState extends State<SignInView> {
                   child: Image(
                       image: AssetImage('assets/Lightrip_Logo_no_bg.png'))),
               Container(
-                  padding: EdgeInsets.only(bottom: 20),
                   child: Text(
-                    'Sign in',
-                    style: TextStyle(
-                        fontSize: 35.0,
-                        fontFamily: 'Poppins',
-                        fontWeight: FontWeight.w700),
-                  )),
+                'Sign in',
+                style: TextStyle(
+                    fontSize: 35.0,
+                    fontFamily: 'Poppins',
+                    fontWeight: FontWeight.w700),
+              )),
               Column(
                 children: <Widget>[
                   ButtonTheme(
@@ -55,26 +54,6 @@ class _SignInViewState extends State<SignInView> {
                       ),
                       onPressed: () {
                         signInUsingFacebook(context);
-                      },
-                    ),
-                  ),
-                  ButtonTheme(
-                    minWidth: 250,
-                    height: 40,
-                    child: RaisedButton(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(18.0),
-                      ),
-                      color: new MaterialColor(0xFFdd3521, color),
-                      child: Text(
-                        'Continue with Google',
-                        style: TextStyle(
-                            fontSize: 12.0,
-                            fontFamily: 'Poppins',
-                            fontWeight: FontWeight.w500),
-                      ),
-                      onPressed: () {
-                        signInUsingGoogle(context);
                       },
                     ),
                   ),

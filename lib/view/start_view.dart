@@ -62,26 +62,6 @@ class _StartViewState extends State<StartView> {
                     ),
                   ),
                   ButtonTheme(
-                    minWidth: 250,
-                    height: 40,
-                    child: RaisedButton(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(18.0),
-                      ),
-                      color: new MaterialColor(0xFFdd3521, color),
-                      child: Text(
-                        'Continue with Google',
-                        style: TextStyle(
-                            fontSize: 12.0,
-                            fontFamily: 'Poppins',
-                            fontWeight: FontWeight.w500),
-                      ),
-                      onPressed: () {
-                        signInUsingGoogle(context);
-                      },
-                    ),
-                  ),
-                  ButtonTheme(
                       minWidth: 250,
                       height: 40,
                       child: NavigationButtonWidget(

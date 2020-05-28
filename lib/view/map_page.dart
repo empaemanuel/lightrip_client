@@ -171,7 +171,7 @@ class _MapPageState extends State<MapPage> {
         home: Scaffold(
           extendBodyBehindAppBar: true,
           appBar: AppBar(
-            leading: new Icon(Icons.menu, color: Colors.black),
+            iconTheme: new IconThemeData(color: Colors.black),
             backgroundColor: Colors.transparent,
             elevation: 0.0,
             title: Container(
@@ -179,7 +179,6 @@ class _MapPageState extends State<MapPage> {
                 height: 40,
                 child: TextField(
                   style: TextStyle(color: Colors.black),
-                  obscureText: true,
                   decoration: InputDecoration(
                     fillColor: Colors.white,
                     filled: true,
@@ -193,6 +192,7 @@ class _MapPageState extends State<MapPage> {
                     hintText: "Where to?",
                   ),
                 )),
+            /*
             actions: <Widget>[
               IconButton(
                   //this is the settings button in the top right
@@ -202,6 +202,7 @@ class _MapPageState extends State<MapPage> {
                     getData(); //calls getData again(for testing purpose atm if user declines to share location)
                   })
             ],
+            */
           ),
           drawer: Drawer(
               child: Container(
@@ -214,7 +215,7 @@ class _MapPageState extends State<MapPage> {
                     child: Text('User Profile',
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                            color: Colors.black,
+                            color: Colors.white,
                             fontSize: 20.0,
                             fontFamily: 'Poppins',
                             fontWeight: FontWeight.w700))),
