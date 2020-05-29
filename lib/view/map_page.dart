@@ -15,7 +15,11 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:google_map_location_picker/generated/i18n.dart'
     as location_picker;
 import 'package:client/custom_color.dart';
+
 import 'package:search_map_place/search_map_place.dart';
+
+import 'package:flutter/services.dart' show rootBundle;
+
 
 class MapPage extends StatefulWidget {
   @override
@@ -30,9 +34,16 @@ class _MapPageState extends State<MapPage> {
   LatLng _vitabergCenter = LatLng(59.3121417,18.0911303);
   LatLng _stockholmCenter = LatLng(59.329428,18.068803);
 
+  String _mapStyle;
+
   @override
   void initState() {
     super.initState();
+
+    rootBundle.loadString('assets/map_style.txt').then((string) {
+      _mapStyle = string;
+    });
+
   }
 
   LatLng _from, _to;
@@ -67,9 +78,12 @@ class _MapPageState extends State<MapPage> {
 
   Widget _googleMap(){
     return GoogleMap(
-      onMapCreated: (GoogleMapController controller) => _mapController.complete(controller),
+      onMapCreated: (GoogleMapController controller) {
+        controller.setMapStyle(_mapStyle);
+        _mapController.complete(controller);},
       myLocationEnabled: false,
       myLocationButtonEnabled: false,
+      zoomControlsEnabled: false,
       markers: _markers,
       initialCameraPosition: CameraPosition(
         target: _stockholmCenter,
@@ -89,6 +103,21 @@ class _MapPageState extends State<MapPage> {
             target: midPoint, zoom: 16.0)));
     controller.animateCamera(CameraUpdate.newLatLngBounds(bounds, 60));
   }
+
+//    setState(() {
+//      _controller = controller;
+//      _controller.setMapStyle(_mapStyle);
+//      polyline.add(Polyline(
+//        //add the blue swiggly lines to a set of <Polyline>
+//        polylineId: PolylineId('route1'),
+//        visible: true,
+//        points: routeCoordsList, //takes a list of <LatLng>
+//        width: 4,
+//        color: Colors.blue,
+//        startCap: Cap.roundCap,
+//        endCap: Cap.buttCap,
+//      ));
+
 
   Widget _googleSearchField(String placeholder, String id) {
     return SearchMapPlaceWidget(
@@ -131,7 +160,6 @@ class _MapPageState extends State<MapPage> {
         home: Scaffold(
           resizeToAvoidBottomPadding: false,
           key: _scaffoldKey,
-          extendBodyBehindAppBar: true,
           drawer: Drawer(
               child: Container(
             color: new MaterialColor(0xFF191a1f, color),
@@ -211,7 +239,7 @@ class _MapPageState extends State<MapPage> {
                           child: IconButton(
                             icon: Icon(
                               Icons.menu,
-                              color: Colors.black54,
+                              color: Colors.white,
                             ),
                             onPressed: () => _scaffoldKey.currentState.openDrawer(),
                           ),
@@ -232,7 +260,7 @@ class _MapPageState extends State<MapPage> {
                       Container(
                         width: 50,
                         child: IconButton(
-                          icon: Icon(Icons.call_split),
+                          icon: Icon(Icons.call_split, color: Colors.white,),
                           onPressed: _generateRoute,
                         )
                       )
