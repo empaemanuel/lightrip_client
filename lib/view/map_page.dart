@@ -175,7 +175,7 @@ class _MapPageState extends State<MapPage> {
             backgroundColor: Colors.transparent,
             elevation: 0.0,
             title: Container(
-                width: 300,
+                width: 250,
                 height: 40,
                 child: TextField(
                   style: TextStyle(color: Colors.black),

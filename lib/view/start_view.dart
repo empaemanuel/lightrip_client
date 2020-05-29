@@ -65,6 +65,19 @@ class _StartViewState extends State<StartView> {
                       minWidth: 250,
                       height: 40,
                       child: NavigationButtonWidget(
+                        color: Colors.green,
+                        title: Text('Temp map button',
+                            style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 12.0,
+                                fontFamily: 'Poppins',
+                                fontWeight: FontWeight.w500)),
+                        navigateTo: MapPage(),
+                      )),
+                  ButtonTheme(
+                      minWidth: 250,
+                      height: 40,
+                      child: NavigationButtonWidget(
                         color: new MaterialColor(0xFFFFFFFF, color),
                         title: Text('Continue with Email',
                             style: TextStyle(

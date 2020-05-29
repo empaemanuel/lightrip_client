@@ -23,126 +23,142 @@ class _EmailViewState extends State<EmailView> {
   Widget build(BuildContext context) {
     return Scaffold(
         backgroundColor: new MaterialColor(0xFF191a1f, color),
-        body:
-            Row(mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[
-          Column(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: <Widget>[
-              Container(
-                  height: 250,
-                  width: 250,
-                  child: Image(
-                      image: AssetImage('assets/Lightrip_Logo_no_bg.png'))),
-              Container(
-                  padding: EdgeInsets.only(bottom: 20),
-                  child: Text(
-                    'Welcome',
-                    style: TextStyle(
-                        fontSize: 35.0,
-                        fontFamily: 'Poppins',
-                        fontWeight: FontWeight.w700),
-                  )),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: <Widget>[
-                  Container(
-                      width: 250,
-                      height: 40,
-                      child: TextField(
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.black),
-                        controller: emailController,
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(18.0)),
-                          filled: true,
-                          fillColor: Colors.white,
-                          hintStyle: TextStyle(
-                              color: Colors.black,
-                              fontSize: 12.0,
-                              fontFamily: 'Poppins',
-                              fontWeight: FontWeight.w500),
-                          hintText: "E-mail",
-                        ),
-                      )),
-                  Container(
-                      padding: EdgeInsets.only(top: 10),
-                      width: 250,
-                      height: 50,
-                      child: TextField(
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.black),
-                        controller: passwordController,
-                        obscureText: true,
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(18.0)),
-                          filled: true,
-                          fillColor: Colors.white,
-                          hintStyle: TextStyle(
-                              color: Colors.black,
-                              fontSize: 12.0,
-                              fontFamily: 'Poppins',
-                              fontWeight: FontWeight.w500),
-                          hintText: "Password",
-                        ),
-                      )),
-                  Container(
-                      padding: EdgeInsets.only(top: 20),
-                      child: ButtonTheme(
-                          height: 40,
-                          child: RaisedButton(
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(18.0)),
-                            color: new MaterialColor(0xFFE5305A, color),
-                            child: Text('Sign up',
-                                style: TextStyle(
-                                    fontSize: 12.0,
-                                    fontFamily: 'Poppins',
-                                    fontWeight: FontWeight.w500)),
-                            onPressed: () {
-                              signUpWithEmailPassword();
-                            },
-                          ))),
-                  Container(
-                      width: 250,
-                      height: 20,
-                      color: Colors.transparent,
-                      child: TextField(
-                          decoration: new InputDecoration(
-                              border: InputBorder.none,
-                              focusedBorder: InputBorder.none,
-                              enabledBorder: InputBorder.none,
-                              errorBorder: InputBorder.none,
-                              disabledBorder: InputBorder.none,
-                              contentPadding: EdgeInsets.only(
-                                  left: 15, bottom: 11, top: 11, right: 15)),
-                          textAlign: TextAlign.center,
-                          controller: txt,
-                          style: TextStyle(
-                              fontSize: 12.0,
-                              fontFamily: 'Poppins',
-                              fontWeight: FontWeight.w500))),
-                ],
-              ),
-              Row(children: <Widget>[
-                Text('Already have an account? '),
-                InkWell(
-                  child: Text('Login',
-                      style: TextStyle(
-                          fontSize: 12.0,
-                          fontFamily: 'Poppins',
-                          fontWeight: FontWeight.w400,
-                          color: new MaterialColor(0xFFE5305A, color),
-                          decoration: TextDecoration.underline)),
-                  onTap: () {
-                    signInPage(context);
-                  },
-                )
-              ])
-            ],
-          )
-        ]));
+        body: SingleChildScrollView(
+            child: Container(
+                height: MediaQuery.of(context).size.height,
+                child:
+                    Row(mainAxisAlignment: MainAxisAlignment.center, children: <
+                        Widget>[
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: <Widget>[
+                      Container(
+                          height: 250,
+                          width: 250,
+                          child: Image(
+                              image: AssetImage(
+                                  'assets/Lightrip_Logo_no_bg.png'))),
+                      Container(
+                          padding: EdgeInsets.only(bottom: 20),
+                          child: Text(
+                            'Welcome',
+                            style: TextStyle(
+                                fontSize: 35.0,
+                                fontFamily: 'Poppins',
+                                fontWeight: FontWeight.w700),
+                          )),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: <Widget>[
+                          Container(
+                              width: 250,
+                              height: 40,
+                              child: TextField(
+                                textAlign: TextAlign.center,
+                                style: TextStyle(color: Colors.black),
+                                controller: emailController,
+                                decoration: InputDecoration(
+                                  border: OutlineInputBorder(
+                                      borderRadius:
+                                          BorderRadius.circular(18.0)),
+                                  filled: true,
+                                  fillColor: Colors.white,
+                                  hintStyle: TextStyle(
+                                      color: Colors.black,
+                                      fontSize: 12.0,
+                                      fontFamily: 'Poppins',
+                                      fontWeight: FontWeight.w500),
+                                  hintText: "E-mail",
+                                ),
+                              )),
+                          Container(
+                              padding: EdgeInsets.only(top: 10),
+                              width: 250,
+                              height: 50,
+                              child: TextField(
+                                textAlign: TextAlign.center,
+                                style: TextStyle(color: Colors.black),
+                                controller: passwordController,
+                                obscureText: true,
+                                decoration: InputDecoration(
+                                  border: OutlineInputBorder(
+                                      borderRadius:
+                                          BorderRadius.circular(18.0)),
+                                  filled: true,
+                                  fillColor: Colors.white,
+                                  hintStyle: TextStyle(
+                                      color: Colors.black,
+                                      fontSize: 12.0,
+                                      fontFamily: 'Poppins',
+                                      fontWeight: FontWeight.w500),
+                                  hintText: "Password",
+                                ),
+                              )),
+                          Container(
+                              padding: EdgeInsets.only(top: 20),
+                              child: ButtonTheme(
+                                  height: 40,
+                                  child: RaisedButton(
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(18.0)),
+                                    color: new MaterialColor(0xFFE5305A, color),
+                                    child: Text('Sign up',
+                                        style: TextStyle(
+                                            fontSize: 12.0,
+                                            fontFamily: 'Poppins',
+                                            fontWeight: FontWeight.w500)),
+                                    onPressed: () {
+                                      signUpWithEmailPassword();
+                                    },
+                                  ))),
+                          Container(
+                              width: 250,
+                              height: 20,
+                              color: Colors.transparent,
+                              child: TextField(
+                                  decoration: new InputDecoration(
+                                      border: InputBorder.none,
+                                      focusedBorder: InputBorder.none,
+                                      enabledBorder: InputBorder.none,
+                                      errorBorder: InputBorder.none,
+                                      disabledBorder: InputBorder.none,
+                                      contentPadding: EdgeInsets.only(
+                                          left: 15,
+                                          bottom: 11,
+                                          top: 11,
+                                          right: 15)),
+                                  textAlign: TextAlign.center,
+                                  controller: txt,
+                                  style: TextStyle(
+                                      fontSize: 12.0,
+                                      fontFamily: 'Poppins',
+                                      fontWeight: FontWeight.w500))),
+                        ],
+                      ),
+                      Container(
+                          alignment: Alignment.bottomCenter,
+                          child: Row(children: <Widget>[
+                            Text('Already have an account? '),
+                            InkWell(
+                              child: Text('Login',
+                                  style: TextStyle(
+                                      fontSize: 12.0,
+                                      fontFamily: 'Poppins',
+                                      fontWeight: FontWeight.w400,
+                                      color:
+                                          new MaterialColor(0xFFE5305A, color),
+                                      decoration: TextDecoration.underline)),
+                              onTap: () {
+                                signInPage(context);
+                              },
+                            )
+                          ]))
+                    ],
+                  )
+                ]))));
   }
 
   void signUpWithEmailPassword() async {
@@ -152,7 +168,7 @@ class _EmailViewState extends State<EmailView> {
               email: emailController.text, password: passwordController.text))
           .user;
     } catch (e) {
-      txt.text = 'Errormessage';
+      txt.text = 'Error message';
     } finally {
       if (user != null) {
         txt.text = 'User registered';
