@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:client/custom_color.dart';
+import 'package:client/services/map_services.dart';
 import 'package:google_map_location_picker/google_map_location_picker.dart';
 import 'package:location/location.dart' as Location;
 import 'package:permission_handler/permission_handler.dart' as PHandler;
@@ -23,12 +24,45 @@ class MapPage extends StatefulWidget {
 
 class _MapPageState extends State<MapPage> {
   Completer<GoogleMapController> _mapController = Completer();
+  Set<Marker> _markers = Set();
+  MapServices mapServices = MapServices();
 
-  LatLng _center = LatLng(59.3121417,18.0911303);
+  LatLng _vitabergCenter = LatLng(59.3121417,18.0911303);
+  LatLng _stockholmCenter = LatLng(59.329428,18.068803);
 
   @override
   void initState() {
     super.initState();
+  }
+
+  LatLng _from, _to;
+  void _addPinToMap(LatLng location, String id) {
+    if (id == 'from') _from = location;
+    if (id == 'to') _to = location;
+
+    _markers.clear();
+
+    Marker mFrom, mTo;
+
+    if (_from != null) {
+      mFrom = Marker(
+        position: _from,
+        markerId: MarkerId('fromPin'),
+      );
+    }
+
+    if (_to != null) {
+      mTo = Marker(
+        position: _to,
+        markerId: MarkerId('toPin'),
+      );
+    }
+
+    setState(() {
+      if(mFrom != null)_markers.add(mFrom);
+      if(mTo != null)_markers.add(mTo);
+    });
+
   }
 
   Widget _googleMap(){
@@ -36,26 +70,43 @@ class _MapPageState extends State<MapPage> {
       onMapCreated: (GoogleMapController controller) => _mapController.complete(controller),
       myLocationEnabled: false,
       myLocationButtonEnabled: false,
+      markers: _markers,
       initialCameraPosition: CameraPosition(
-        target: _center,
+        target: _stockholmCenter,
         zoom: 11.0,
       ),
     );
   }
 
-  Widget _googleSearchField(String placeholder) {
+  void _generateRoute() async{
+    final GoogleMapController controller = await _mapController.future;
+    LatLng midPoint = mapServices.midPoint(_markers.elementAt(0).position, _markers.elementAt(1).position);
+    LatLngBounds bounds = mapServices.getBounds(_markers.elementAt(0).position, _markers.elementAt(1).position);
+
+    controller.animateCamera(
+        CameraUpdate.newCameraPosition(
+          CameraPosition(
+            target: midPoint, zoom: 16.0)));
+    controller.animateCamera(CameraUpdate.newLatLngBounds(bounds, 60));
+  }
+
+  Widget _googleSearchField(String placeholder, String id) {
     return SearchMapPlaceWidget(
       darkMode: true,
       placeholder: placeholder,
       apiKey: 'AIzaSyAKXJqJ6wqHVs2x18yuoSpbA0iHj8v6_XE',
       language: 'sv',
-      location: _center,
+      location: _vitabergCenter,
       radius: 1000,
       onSelected: (Place place) async {
         final geolocation = await place.geolocation;
         final GoogleMapController controller = await _mapController.future;
-        controller.animateCamera(CameraUpdate.newLatLng(geolocation.coordinates));
-        controller.animateCamera(CameraUpdate.newLatLngBounds(geolocation.bounds, 0));
+        controller.animateCamera(
+            CameraUpdate.newCameraPosition(
+                CameraPosition(
+                    target: geolocation.coordinates,
+                    zoom: 16.0)));
+        _addPinToMap(geolocation.coordinates, id);
       },
     );
   }
@@ -172,9 +223,9 @@ class _MapPageState extends State<MapPage> {
                         alignment: Alignment.topCenter,
                         child: Column(
                           children: <Widget>[
-                            _googleSearchField('Search From'),
+                            _googleSearchField('Search From', 'from'),
                             SizedBox(height: 5),
-                            _googleSearchField('Search To'),
+                            _googleSearchField('Search To', 'to'),
                           ],
                         ),
                       ),
@@ -182,7 +233,7 @@ class _MapPageState extends State<MapPage> {
                         width: 50,
                         child: IconButton(
                           icon: Icon(Icons.call_split),
-                          //onPressed: _generateRoute,
+                          onPressed: _generateRoute,
                         )
                       )
                     ],
