@@ -86,7 +86,8 @@ class _StartViewState extends State<StartView> {
                                 fontFamily: 'Poppins',
                                 fontWeight: FontWeight.w500)),
                         navigateTo: EmailView(),
-                      )),
+                      ),
+                  ),
                 ],
               ),
               Row(children: <Widget>[

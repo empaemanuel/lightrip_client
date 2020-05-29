@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:client/custom_color.dart';
+import 'package:client/services/map_services.dart';
 import 'package:google_map_location_picker/google_map_location_picker.dart';
 import 'package:location/location.dart' as Location;
 import 'package:permission_handler/permission_handler.dart' as PHandler;
@@ -13,7 +15,11 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:google_map_location_picker/generated/i18n.dart'
     as location_picker;
 import 'package:client/custom_color.dart';
+
+import 'package:search_map_place/search_map_place.dart';
+
 import 'package:flutter/services.dart' show rootBundle;
+
 
 class MapPage extends StatefulWidget {
   @override
@@ -21,195 +27,139 @@ class MapPage extends StatefulWidget {
 }
 
 class _MapPageState extends State<MapPage> {
-  final Set<Polyline> polyline =
-      {}; //set containing the polylines to be drawn on map
-  GoogleMapController _controller; //controller for the map
-  List routeList; //initial list to handle first objects being sent from server
-  List<LatLng> routeCoordsList =
-      new List<LatLng>(); //second list to handle the transformed nodes
-  int distance; //distance of route
-  String user; //user
-  Location.Location location; //location wrapper
-  Location.LocationData
-      currentLocation; //save what is considered "current location"
-  Set<Marker> _markers =
-      Set<Marker>(); //set that holds all markers to be placed on map
-  LocationResult _pickedLocation; //save result of chosen location
+  Completer<GoogleMapController> _mapController = Completer();
+  Set<Marker> _markers = Set();
+  MapServices mapServices = MapServices();
+
+  LatLng _vitabergCenter = LatLng(59.3121417,18.0911303);
+  LatLng _stockholmCenter = LatLng(59.329428,18.068803);
+
   String _mapStyle;
 
   @override
   void initState() {
-    //called once in the beginning
     super.initState();
 
-    location = new Location.Location();
     rootBundle.loadString('assets/map_style.txt').then((string) {
       _mapStyle = string;
     });
 
-    getData(); //get data needed for lines
   }
 
-  void getData() async {
-    var permissions = await PHandler.Permission.location
-        .request(); //ask for permission to use location
+  LatLng _from, _to;
+  void _addPinToMap(LatLng location, String id) {
+    if (id == 'from') _from = location;
+    if (id == 'to') _to = location;
 
-    if (permissions == PHandler.PermissionStatus.granted) {
-      //if its granted do this
-      // Either the permission was already granted before or the user just granted it.
+    _markers.clear();
 
-      location.onLocationChanged.listen((Location.LocationData cLoc) {
-        //this func is called every time location updates
-        currentLocation = cLoc; //update location
-        updatePinOnMap(); //update marker
-        print(currentLocation); //for debug purpose
-      }); //TODO: remove listener when not on map page
+    Marker mFrom, mTo;
 
-      final response = await http.get(
-          'https://group2-75.pvt.dsv.su.se/server-0.0.1-SNAPSHOT/route/demo'); //ask server for data
-
-      if (response.statusCode == 200) {
-        //if request succeeded
-        // If the server did return a 200 OK response,
-        // then parse the JSON.
-        Map dataMap = json.decode(response
-            .body); //turn response into a readable map      ---      could probably simplify this part slightly
-        routeList = dataMap[
-            'route']; //save the list from the map to a separate list                                            |
-        distance = dataMap[
-            'distance']; //save the distance                                                                        |
-        user = dataMap[
-            'user']; //save the user                                                                            |
-        //                                                                                         |
-        for (dynamic coords in routeList) {
-          //iterate through the list of nodes, nodes are saved as map objects        |
-          LatLng
-              lineCoords = //save the lat and long values as a LatLng object                          |
-              new LatLng(
-                  coords['latitude'],
-                  coords[
-                      'longitude']); //                                                                         |
-          routeCoordsList.add(
-              lineCoords); //add the LatLng obj to a new list                                         |
-        }
-
-        //dataMap['route']
-      } else {
-        // If the server did not return a 200 OK response,
-        // then throw an exception.
-        throw Exception('Failed to load album');
-      }
+    if (_from != null) {
+      mFrom = Marker(
+        position: _from,
+        markerId: MarkerId('fromPin'),
+      );
     }
-  }
 
-  void updatePinOnMap() {
-    setState(() {
-      _markers
-          .removeWhere((m) => m.markerId.value == 'User'); //remove old marker
-      _markers.add(Marker(
-          //add new one with updated location
-          markerId: MarkerId('User'),
-          position: LatLng(currentLocation.latitude, currentLocation.longitude),
-          onTap: () {
-            //do stuff
-          }));
-    });
-  }
-
-  Widget _googleMap(BuildContext context) {
-    //create the google map object
-    return Container(
-        height: MediaQuery.of(context).size.height,
-        width: MediaQuery.of(context).size.width,
-        child: GoogleMap(
-          zoomControlsEnabled: false,
-          mapType: MapType.normal,
-          initialCameraPosition:
-              CameraPosition(target: LatLng(59.3121417, 18.0911303), zoom: 18),
-          onMapCreated: onMapCreated, //call onMapCreated func when created
-          polylines:
-              polyline, //add the swigglies put in the set polyline in func above to the map
-          markers: _markers,
-        ));
-  }
-
-  void onMapCreated(GoogleMapController controller) async {
-    //called after the map is created
-    currentLocation = await location.getLocation();
+    if (_to != null) {
+      mTo = Marker(
+        position: _to,
+        markerId: MarkerId('toPin'),
+      );
+    }
 
     setState(() {
-      _controller = controller;
-      _controller.setMapStyle(_mapStyle);
-      polyline.add(Polyline(
-        //add the blue swiggly lines to a set of <Polyline>
-        polylineId: PolylineId('route1'),
-        visible: true,
-        points: routeCoordsList, //takes a list of <LatLng>
-        width: 4,
-        color: Colors.blue,
-        startCap: Cap.roundCap,
-        endCap: Cap.buttCap,
-      ));
-
-      _markers.add(Marker(
-          markerId: MarkerId('User'),
-          position: LatLng(currentLocation.latitude, currentLocation.longitude),
-          onTap: () {
-            //do stuff
-          }));
+      if(mFrom != null)_markers.add(mFrom);
+      if(mTo != null)_markers.add(mTo);
     });
+
   }
+
+  Widget _googleMap(){
+    return GoogleMap(
+      onMapCreated: (GoogleMapController controller) {
+        controller.setMapStyle(_mapStyle);
+        _mapController.complete(controller);},
+      myLocationEnabled: false,
+      myLocationButtonEnabled: false,
+      zoomControlsEnabled: false,
+      markers: _markers,
+      initialCameraPosition: CameraPosition(
+        target: _stockholmCenter,
+        zoom: 11.0,
+      ),
+    );
+  }
+
+  void _generateRoute() async{
+    final GoogleMapController controller = await _mapController.future;
+    LatLng midPoint = mapServices.midPoint(_markers.elementAt(0).position, _markers.elementAt(1).position);
+    LatLngBounds bounds = mapServices.getBounds(_markers.elementAt(0).position, _markers.elementAt(1).position);
+
+    controller.animateCamera(
+        CameraUpdate.newCameraPosition(
+          CameraPosition(
+            target: midPoint, zoom: 16.0)));
+    controller.animateCamera(CameraUpdate.newLatLngBounds(bounds, 60));
+  }
+
+//    setState(() {
+//      _controller = controller;
+//      _controller.setMapStyle(_mapStyle);
+//      polyline.add(Polyline(
+//        //add the blue swiggly lines to a set of <Polyline>
+//        polylineId: PolylineId('route1'),
+//        visible: true,
+//        points: routeCoordsList, //takes a list of <LatLng>
+//        width: 4,
+//        color: Colors.blue,
+//        startCap: Cap.roundCap,
+//        endCap: Cap.buttCap,
+//      ));
+
+
+  Widget _googleSearchField(String placeholder, String id) {
+    return SearchMapPlaceWidget(
+      darkMode: true,
+      placeholder: placeholder,
+      apiKey: 'AIzaSyAKXJqJ6wqHVs2x18yuoSpbA0iHj8v6_XE',
+      language: 'sv',
+      location: _vitabergCenter,
+      radius: 1000,
+      onSelected: (Place place) async {
+        final geolocation = await place.geolocation;
+        final GoogleMapController controller = await _mapController.future;
+        controller.animateCamera(
+            CameraUpdate.newCameraPosition(
+                CameraPosition(
+                    target: geolocation.coordinates,
+                    zoom: 16.0)));
+        _addPinToMap(geolocation.coordinates, id);
+      },
+    );
+  }
+
+  // Needed as reference for opening drawer.
+  final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        localizationsDelegates: const [
-          location_picker.S.delegate,
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        supportedLocales: const <Locale>[
-          Locale('sv', ''),
-          Locale('en', ''),
-          Locale('ar', ''),
-        ],
+//        localizationsDelegates: const [
+//          location_picker.S.delegate,
+//          GlobalMaterialLocalizations.delegate,
+//          GlobalWidgetsLocalizations.delegate,
+//          GlobalCupertinoLocalizations.delegate,
+//        ],
+//        supportedLocales: const <Locale>[
+//          Locale('sv', ''),
+//          Locale('en', ''),
+//          Locale('ar', ''),
+//        ],
         home: Scaffold(
-          extendBodyBehindAppBar: true,
-          appBar: AppBar(
-            iconTheme: new IconThemeData(color: Colors.black),
-            backgroundColor: Colors.transparent,
-            elevation: 0.0,
-            title: Container(
-                width: 250,
-                height: 40,
-                child: TextField(
-                  style: TextStyle(color: Colors.black),
-                  decoration: InputDecoration(
-                    fillColor: Colors.white,
-                    filled: true,
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(18.0)),
-                    hintStyle: TextStyle(
-                        color: Colors.black,
-                        fontSize: 15.0,
-                        fontFamily: 'Poppins',
-                        fontWeight: FontWeight.w500),
-                    hintText: "Where to?",
-                  ),
-                )),
-            /*
-            actions: <Widget>[
-              IconButton(
-                  //this is the settings button in the top right
-                  icon: Icon(Icons.settings),
-                  tooltip: 'Fetch data',
-                  onPressed: () {
-                    getData(); //calls getData again(for testing purpose atm if user declines to share location)
-                  })
-            ],
-            */
-          ),
+          resizeToAvoidBottomPadding: false,
+          key: _scaffoldKey,
           drawer: Drawer(
               child: Container(
             color: new MaterialColor(0xFF191a1f, color),
@@ -268,29 +218,59 @@ class _MapPageState extends State<MapPage> {
               ],
             ),
           )),
-          body: Center(
-            child: Center(
-                child: Stack(
-              children: <Widget>[
-                _googleMap(
-                    context) //this is where we add our map object making it visible in the interface
-              ],
-            )),
-          ),
-          floatingActionButton: FloatingActionButton(
-              backgroundColor: new MaterialColor(0xFFE5305A, color),
-              child: Icon(
-                Icons.flag,
+          body: Stack(
+            children: <Widget>[
+              _googleMap(),
+              Column(
+                children: <Widget>[
+                  SizedBox(
+                    height: 40,
+                  ),
+                  Row(
+                    mainAxisSize: MainAxisSize.max,
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      //Drawer button
+                      Container(
+                        width: 50,
+                          height: 50,
+                          alignment: Alignment.center,
+                          child: IconButton(
+                            icon: Icon(
+                              Icons.menu,
+                              color: Colors.white,
+                            ),
+                            onPressed: () => _scaffoldKey.currentState.openDrawer(),
+                          ),
+                      ),
+                      //Search Boxes
+                      Container(
+                        width: 300,
+                        height: 250,
+                        alignment: Alignment.topCenter,
+                        child: Column(
+                          children: <Widget>[
+                            _googleSearchField('Search From', 'from'),
+                            SizedBox(height: 5),
+                            _googleSearchField('Search To', 'to'),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        width: 50,
+                        child: IconButton(
+                          icon: Icon(Icons.call_split, color: Colors.white,),
+                          onPressed: _generateRoute,
+                        )
+                      )
+                    ],
+                  ),
+                ],
               ),
-              onPressed: () async {
-                _pickedLocation = await showLocationPicker(
-                  context,
-                  'AIzaSyAKXJqJ6wqHVs2x18yuoSpbA0iHj8v6_XE',
-                  initialCenter: LatLng(31.1975844, 29.9598339),
-                  myLocationButtonEnabled: true,
-                  layersButtonEnabled: true,
-                );
-              }),
-        ));
+            ],
+          ),
+        )
+    );
   }
 }
