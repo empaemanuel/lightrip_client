@@ -13,6 +13,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:google_map_location_picker/generated/i18n.dart'
     as location_picker;
 import 'package:client/custom_color.dart';
+import 'package:flutter/services.dart' show rootBundle;
 
 class MapPage extends StatefulWidget {
   @override
@@ -34,6 +35,7 @@ class _MapPageState extends State<MapPage> {
   Set<Marker> _markers =
       Set<Marker>(); //set that holds all markers to be placed on map
   LocationResult _pickedLocation; //save result of chosen location
+  String _mapStyle;
 
   @override
   void initState() {
@@ -41,6 +43,10 @@ class _MapPageState extends State<MapPage> {
     super.initState();
 
     location = new Location.Location();
+    rootBundle.loadString('assets/map_style.txt').then((string) {
+      _mapStyle = string;
+    });
+
     getData(); //get data needed for lines
   }
 
@@ -133,7 +139,7 @@ class _MapPageState extends State<MapPage> {
 
     setState(() {
       _controller = controller;
-
+      _controller.setMapStyle(_mapStyle);
       polyline.add(Polyline(
         //add the blue swiggly lines to a set of <Polyline>
         polylineId: PolylineId('route1'),

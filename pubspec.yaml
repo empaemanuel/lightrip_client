@@ -59,6 +59,7 @@ flutter:
   #   - images/a_dot_ham.jpeg
   assets:
   - assets/Lightrip_Logo_no_bg.png
+  - assets/map_style.txt
 
   
   fonts:
