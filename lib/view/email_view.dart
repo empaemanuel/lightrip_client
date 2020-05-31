@@ -2,8 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:client/view/map_page.dart';
-import 'package:client/view/sign_in_view.dart';
-import 'package:client/widgets/navigationButton_widget.dart';
+import 'package:client/view/start_view.dart';
 import 'package:client/custom_color.dart';
 
 class EmailView extends StatefulWidget {
@@ -42,7 +41,7 @@ class _EmailViewState extends State<EmailView> {
                       Container(
                           padding: EdgeInsets.only(bottom: 20),
                           child: Text(
-                            'Welcome',
+                            'Sign up',
                             style: TextStyle(
                                 fontSize: 35.0,
                                 fontFamily: 'Poppins',
@@ -111,7 +110,7 @@ class _EmailViewState extends State<EmailView> {
                                             fontFamily: 'Poppins',
                                             fontWeight: FontWeight.w500)),
                                     onPressed: () {
-                                      signUpWithEmailPassword();
+                                      signUpWithEmailPassword(context);
                                     },
                                   ))),
                           Container(
@@ -143,7 +142,7 @@ class _EmailViewState extends State<EmailView> {
                           child: Row(children: <Widget>[
                             Text('Already have an account? '),
                             InkWell(
-                              child: Text('Login',
+                              child: Text('Sign in',
                                   style: TextStyle(
                                       fontSize: 12.0,
                                       fontFamily: 'Poppins',
@@ -152,7 +151,7 @@ class _EmailViewState extends State<EmailView> {
                                           new MaterialColor(0xFFE5305A, color),
                                       decoration: TextDecoration.underline)),
                               onTap: () {
-                                signInPage(context);
+                                startPage(context);
                               },
                             )
                           ]))
@@ -161,24 +160,31 @@ class _EmailViewState extends State<EmailView> {
                 ]))));
   }
 
-  void signUpWithEmailPassword() async {
+  void signUpWithEmailPassword(BuildContext context) async {
     FirebaseUser user;
     try {
       user = (await mAuth.createUserWithEmailAndPassword(
               email: emailController.text, password: passwordController.text))
           .user;
     } catch (e) {
-      txt.text = 'Error message';
+      txt.text = 'Invalit username or password';
     } finally {
       if (user != null) {
         txt.text = 'User registered';
+        mapPage(context);
       }
     }
   }
 }
 
-void signInPage(BuildContext context) {
+void startPage(BuildContext context) {
   Navigator.push(context, MaterialPageRoute(builder: (BuildContext context) {
-    return SignInView();
+    return StartView();
+  }));
+}
+
+void mapPage(BuildContext context) {
+  Navigator.push(context, MaterialPageRoute(builder: (BuildContext context) {
+    return MapPage();
   }));
 }

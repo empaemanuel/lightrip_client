@@ -1,6 +1,6 @@
 import 'package:client/services/facebook_signin_services.dart';
+import 'package:client/view/log_in_vjew.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:client/view/sign_in_view.dart';
 import 'package:flutter/material.dart';
 import 'package:client/view/email_view.dart';
 import 'package:client/widgets/navigationButton_widget.dart';
@@ -33,7 +33,7 @@ class _StartViewState extends State<StartView> {
                       image: AssetImage('assets/Lightrip_Logo_no_bg.png'))),
               Container(
                   child: Text(
-                'Register',
+                'Welcome',
                 style: TextStyle(
                     fontSize: 35.0,
                     fontFamily: 'Poppins',
@@ -50,7 +50,7 @@ class _StartViewState extends State<StartView> {
                       ),
                       color: new MaterialColor(0xFF3c5899, color),
                       child: Text(
-                        'Continue with Facebook',
+                        'Sign in with Facebook',
                         style: TextStyle(
                             fontSize: 12.0,
                             fontFamily: 'Poppins',
@@ -75,29 +75,29 @@ class _StartViewState extends State<StartView> {
                         navigateTo: MapPage(),
                       )),
                   ButtonTheme(
-                      minWidth: 250,
-                      height: 40,
-                      child: NavigationButtonWidget(
-                        color: new MaterialColor(0xFFFFFFFF, color),
-                        title: Text('Continue with Email',
-                            style: TextStyle(
-                                color: Colors.black,
-                                fontSize: 12.0,
-                                fontFamily: 'Poppins',
-                                fontWeight: FontWeight.w500)),
-                        navigateTo: EmailView(),
-                      ),
+                    minWidth: 250,
+                    height: 40,
+                    child: NavigationButtonWidget(
+                      color: new MaterialColor(0xFFFFFFFF, color),
+                      title: Text('Sign in with Email',
+                          style: TextStyle(
+                              color: Colors.black,
+                              fontSize: 12.0,
+                              fontFamily: 'Poppins',
+                              fontWeight: FontWeight.w500)),
+                      navigateTo: LogInView(),
+                    ),
                   ),
                 ],
               ),
               Row(children: <Widget>[
-                Text('Already have an account? ',
+                Text('Don\'t have an account? ',
                     style: TextStyle(
                         fontSize: 12.0,
                         fontFamily: 'Poppins',
                         fontWeight: FontWeight.w400)),
                 InkWell(
-                    child: Text('Sign in',
+                    child: Text('Sign up',
                         style: TextStyle(
                             fontSize: 12.0,
                             fontFamily: 'Poppins',
@@ -124,6 +124,6 @@ class _StartViewState extends State<StartView> {
 
 void signInPage(BuildContext context) {
   Navigator.push(context, MaterialPageRoute(builder: (BuildContext context) {
-    return SignInView();
+    return EmailView();
   }));
 }

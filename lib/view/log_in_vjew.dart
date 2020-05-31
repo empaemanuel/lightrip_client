@@ -3,8 +3,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:client/view/map_page.dart';
 import 'package:client/view/start_view.dart';
-import 'package:client/widgets/navigationButton_widget.dart';
+
 import 'package:client/custom_color.dart';
+import 'package:client/view/email_view.dart';
 
 class LogInView extends StatefulWidget {
   @override
@@ -38,7 +39,7 @@ class _LogInViewState extends State<LogInView> {
                           Container(
                               padding: EdgeInsets.only(bottom: 20),
                               child: Text(
-                                'Welcome back',
+                                'Sign in',
                                 style: TextStyle(
                                     fontSize: 35.0,
                                     fontFamily: 'Poppins',
@@ -135,9 +136,9 @@ class _LogInViewState extends State<LogInView> {
                             ],
                           ),
                           Row(children: <Widget>[
-                            Text('Already have an account? '),
+                            Text('Don\'t have an account? '),
                             InkWell(
-                              child: Text('Register',
+                              child: Text('Sign up',
                                   style: TextStyle(
                                       fontSize: 12.0,
                                       fontFamily: 'Poppins',
@@ -146,7 +147,7 @@ class _LogInViewState extends State<LogInView> {
                                           new MaterialColor(0xFFE5305A, color),
                                       decoration: TextDecoration.underline)),
                               onTap: () {
-                                registerPage(context);
+                                signInPage(context);
                               },
                             )
                           ])
@@ -162,7 +163,7 @@ class _LogInViewState extends State<LogInView> {
               email: emailController.text, password: passwordController.text))
           .user;
     } catch (e) {
-      txt.text = "Error message";
+      txt.text = "Invalid username or password";
     } finally {
       if (user != null) {
         print("User is signed in");
@@ -181,5 +182,11 @@ void registerPage(BuildContext context) {
 void mapPage(BuildContext context) {
   Navigator.push(context, MaterialPageRoute(builder: (BuildContext context) {
     return MapPage();
+  }));
+}
+
+void signInPage(BuildContext context) {
+  Navigator.push(context, MaterialPageRoute(builder: (BuildContext context) {
+    return EmailView();
   }));
 }
