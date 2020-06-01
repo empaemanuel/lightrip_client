@@ -1,23 +1,12 @@
 import 'dart:async';
-import 'dart:convert';
-
 import 'package:client/custom_color.dart';
 import 'package:client/services/map_services.dart';
-import 'package:google_map_location_picker/google_map_location_picker.dart';
-import 'package:location/location.dart' as Location;
 import 'package:permission_handler/permission_handler.dart' as PHandler;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:client/view/start_view.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:google_map_location_picker/generated/i18n.dart'
-    as location_picker;
-import 'package:client/custom_color.dart';
-
 import 'package:search_map_place/search_map_place.dart';
-
 import 'package:flutter/services.dart' show rootBundle;
 
 
@@ -28,11 +17,17 @@ class MapPage extends StatefulWidget {
 
 class _MapPageState extends State<MapPage> {
   Completer<GoogleMapController> _mapController = Completer();
-  Set<Marker> _markers = Set();
   MapServices mapServices = MapServices();
 
-  LatLng _vitabergCenter = LatLng(59.3121417,18.0911303);
-  LatLng _stockholmCenter = LatLng(59.329428,18.068803);
+  Set<Marker> _markers = Set();
+  Set<Polyline> _polylines = Set();
+
+  //Used to seperate the two widgets.
+  final fromID = 'from';
+  final toID = 'to';
+
+  //Start position when opening the map
+  final LatLng _stockholmCenter = LatLng(59.329428,18.068803);
 
   String _mapStyle;
 
@@ -43,37 +38,11 @@ class _MapPageState extends State<MapPage> {
     rootBundle.loadString('assets/map_style.txt').then((string) {
       _mapStyle = string;
     });
-
   }
 
-  LatLng _from, _to;
-  void _addPinToMap(LatLng location, String id) {
-    if (id == 'from') _from = location;
-    if (id == 'to') _to = location;
-
-    _markers.clear();
-
-    Marker mFrom, mTo;
-
-    if (_from != null) {
-      mFrom = Marker(
-        position: _from,
-        markerId: MarkerId('fromPin'),
-      );
-    }
-
-    if (_to != null) {
-      mTo = Marker(
-        position: _to,
-        markerId: MarkerId('toPin'),
-      );
-    }
-
-    setState(() {
-      if(mFrom != null)_markers.add(mFrom);
-      if(mTo != null)_markers.add(mTo);
-    });
-
+  @override
+  void dispose(){
+    super.dispose();
   }
 
   Widget _googleMap(){
@@ -85,24 +54,58 @@ class _MapPageState extends State<MapPage> {
       myLocationButtonEnabled: false,
       zoomControlsEnabled: false,
       markers: _markers,
+      polylines: _polylines,
       initialCameraPosition: CameraPosition(
         target: _stockholmCenter,
         zoom: 11.0,
       ),
     );
   }
-
+  ///generates route and draws it onto the map
   void _generateRoute() async{
+      Future<Polyline> polylineFuture = mapServices.getPolyline();
+      //_moveCameraToMidPoint();
+      Polyline polyline = await polylineFuture;
+      setState(() {
+        _polylines.add(polyline);
+      });
+  }
+
+  ///Adds a marker/pin to the map at the given location.
+  void _addPinToMap(LatLng location, String id) {
+    if(id == fromID){
+      mapServices.setLocation_From(location);
+    } else if( id == toID){
+      mapServices.setLocation_To(location);
+    } else {
+      throw Exception('Id not found!');
+    }
+    setState(() {
+      _markers = mapServices.getMarkers();
+    });
+  }
+
+// FAKE FOR TESTS ONLY
+//  void _generateRoute() async{
+//    Future<List<Polyline>> futurePoints = mapServices.getMockAll();
+//    List<Polyline> polylines = await futurePoints;
+//    setState(() {
+//      _polylines.addAll(polylines);
+//    });
+//  }
+
+  void _moveCameraToMidPoint() async{
     final GoogleMapController controller = await _mapController.future;
-    LatLng midPoint = mapServices.midPoint(_markers.elementAt(0).position, _markers.elementAt(1).position);
-    LatLngBounds bounds = mapServices.getBounds(_markers.elementAt(0).position, _markers.elementAt(1).position);
+    LatLng midPoint = mapServices.getMidPoint();
+    LatLngBounds bounds = mapServices.getMidPointBounds();
 
     controller.animateCamera(
         CameraUpdate.newCameraPosition(
-          CameraPosition(
-            target: midPoint, zoom: 16.0)));
+            CameraPosition(
+                target: midPoint, zoom: 16.0)));
     controller.animateCamera(CameraUpdate.newLatLngBounds(bounds, 60));
   }
+
 
 //    setState(() {
 //      _controller = controller;
@@ -119,13 +122,14 @@ class _MapPageState extends State<MapPage> {
 //      ));
 
 
+  ///Definition of the search text-field widget.
   Widget _googleSearchField(String placeholder, String id) {
     return SearchMapPlaceWidget(
       darkMode: true,
       placeholder: placeholder,
       apiKey: 'AIzaSyAKXJqJ6wqHVs2x18yuoSpbA0iHj8v6_XE',
       language: 'sv',
-      location: _vitabergCenter,
+      location: _stockholmCenter,
       radius: 1000,
       onSelected: (Place place) async {
         final geolocation = await place.geolocation;
@@ -251,9 +255,9 @@ class _MapPageState extends State<MapPage> {
                         alignment: Alignment.topCenter,
                         child: Column(
                           children: <Widget>[
-                            _googleSearchField('Search From', 'from'),
+                            _googleSearchField('Search From', fromID),
                             SizedBox(height: 5),
-                            _googleSearchField('Search To', 'to'),
+                            _googleSearchField('Search To', toID),
                           ],
                         ),
                       ),

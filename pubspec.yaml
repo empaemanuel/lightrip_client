@@ -25,7 +25,7 @@ dependencies:
     sdk: flutter
   http: ^0.12.0+4
   google_maps_flutter: 0.5.28+1
-  google_map_polyline: 
+  flutter_polyline_points: ^0.2.1
   google_map_location_picker: ^3.3.1
   search_map_place: ^0.3.0
   permission_handler: ^5.0.0
