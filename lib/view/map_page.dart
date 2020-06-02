@@ -15,6 +15,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:google_map_location_picker/generated/i18n.dart'
     as location_picker;
+import 'package:sms/sms.dart';
 
 import 'package:search_map_place/search_map_place.dart';
 
@@ -246,12 +247,31 @@ class _MapPageState extends State<MapPage> {
                 padding: EdgeInsets.all(20),
                 child: InkWell(
                     splashColor: Colors.transparent,
-                    onTap: () => launch('tel://112'),
+                    onTap: () {
+                      sendSms();
+                      launch('tel://112');
+                    },
                     child:
                         Image(image: AssetImage('assets/Icon_Emergency.png'))),
               )
             ],
           ),
         ));
+  }
+
+  void sendSms() {
+    SmsSender sender = new SmsSender();
+    String number = "12343567";
+
+    SmsMessage message = new SmsMessage(number, "Help, i\'m in danger!");
+
+    message.onStateChanged.listen((state) {
+      if (state == SmsMessageState.Sent) {
+        print("SMS is sent!");
+      } else if (state == SmsMessageState.Delivered) {
+        print("SMS is delivered!");
+      }
+    });
+    sender.sendSms(message);
   }
 }
