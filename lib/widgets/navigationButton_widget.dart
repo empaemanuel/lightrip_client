@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+//Button used for navigation
 class NavigationButtonWidget extends StatelessWidget {
   NavigationButtonWidget({this.title, this.navigateTo, this.color});
   final Widget title;

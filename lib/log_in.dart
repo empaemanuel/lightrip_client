@@ -27,6 +27,8 @@ void signInUsingGoogle(BuildContext context) async {
   }
 }
 
+//Method used for authenticating users through facebook
+//Navigates to map page if successful
 void signInUsingFacebook(BuildContext context) async {
   FirebaseUser user;
   final FacebookLogin facebookLogin = new FacebookLogin();

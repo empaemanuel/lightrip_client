@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:client/view/start_view.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:google_map_location_picker/generated/i18n.dart'
     as location_picker;
@@ -139,6 +140,7 @@ class _MapPageState extends State<MapPage> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+        debugShowCheckedModeBanner: false,
 //        localizationsDelegates: const [
 //          location_picker.S.delegate,
 //          GlobalMaterialLocalizations.delegate,
@@ -151,103 +153,105 @@ class _MapPageState extends State<MapPage> {
 //          Locale('ar', ''),
 //        ],
         home: Scaffold(
-      resizeToAvoidBottomPadding: false,
-      key: _scaffoldKey,
-      drawer: Drawer(
-          child: Container(
-        color: new MaterialColor(0xFF191a1f, color),
-        child: ListView(
-          children: <Widget>[
-            DrawerHeader(
-                decoration:
-                    BoxDecoration(color: new MaterialColor(0xFF191a1f, color)),
-                child: Text('User Profile',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 20.0,
-                        fontFamily: 'Poppins',
-                        fontWeight: FontWeight.w700))),
-            /*
-            ListTile(
-                title: Text('Saved routes',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 12.0,
-                        fontFamily: 'Poppins',
-                        fontWeight: FontWeight.w500))),
-                        */
-            ListTile(
-                title: Text('Sign out',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 12.0,
-                        fontFamily: 'Poppins',
-                        fontWeight: FontWeight.w500)),
-                onTap: () => Navigator.push(context,
-                        MaterialPageRoute(builder: (BuildContext context) {
-                      return StartView();
-                    }))),
-          ],
-        ),
-      )),
-      body: Stack(
-        alignment: Alignment.topCenter,
-        children: <Widget>[
-          _googleMap(),
-          Column(
+          resizeToAvoidBottomPadding: false,
+          key: _scaffoldKey,
+          //Drawer menu
+          drawer: Drawer(
+              child: Container(
+            color: new MaterialColor(0xFF191a1f, color),
+            child: ListView(
+              children: <Widget>[
+                DrawerHeader(
+                    decoration: BoxDecoration(
+                        color: new MaterialColor(0xFF191a1f, color)),
+                    child: Text('User Profile',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20.0,
+                            fontFamily: 'Poppins',
+                            fontWeight: FontWeight.w700))),
+                //List tile that navigates to start view
+                ListTile(
+                    title: Text('Sign out',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16.0,
+                            fontFamily: 'Poppins',
+                            fontWeight: FontWeight.w500)),
+                    onTap: () => Navigator.push(context,
+                            MaterialPageRoute(builder: (BuildContext context) {
+                          return StartView();
+                        }))),
+              ],
+            ),
+          )),
+          body: Stack(
+            alignment: Alignment.bottomRight,
             children: <Widget>[
-              SizedBox(
-                height: 40,
-              ),
-              Row(
-                mainAxisSize: MainAxisSize.max,
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                crossAxisAlignment: CrossAxisAlignment.start,
+              _googleMap(),
+              Column(
                 children: <Widget>[
-                  //Drawer button
-                  Container(
-                    width: 50,
-                    height: 50,
-                    alignment: Alignment.center,
-                    child: IconButton(
-                      icon: Icon(
-                        Icons.menu,
-                        color: Colors.white,
-                      ),
-                      onPressed: () => _scaffoldKey.currentState.openDrawer(),
-                    ),
+                  SizedBox(
+                    height: 40,
                   ),
-                  //Search Boxes
-
-                  Container(
-                    width: 300,
-                    alignment: Alignment.topCenter,
-                    child: Column(
-                      children: <Widget>[
-                        _googleSearchField('Search From', 'from'),
-                        SizedBox(height: 5),
-                        _googleSearchField('Search To', 'to'),
-                      ],
-                    ),
-                  ),
-                  Container(
-                      width: 50,
-                      child: IconButton(
-                        icon: Icon(
-                          Icons.call_split,
-                          color: Colors.white,
+                  Row(
+                    mainAxisSize: MainAxisSize.max,
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      //Drawer button
+                      Container(
+                        width: 50,
+                        height: 50,
+                        alignment: Alignment.center,
+                        child: IconButton(
+                          icon: Icon(
+                            Icons.menu,
+                            color: Colors.white,
+                          ),
+                          onPressed: () =>
+                              _scaffoldKey.currentState.openDrawer(),
                         ),
-                        onPressed: _generateRoute,
-                      ))
+                      ),
+                      //Search Boxes
+                      Container(
+                        width: 300,
+                        alignment: Alignment.topCenter,
+                        child: Column(
+                          children: <Widget>[
+                            _googleSearchField('Search From', 'from'),
+                            SizedBox(height: 5),
+                            _googleSearchField('Search To', 'to'),
+                          ],
+                        ),
+                      ),
+                      //Generate route button
+                      Container(
+                          width: 50,
+                          child: IconButton(
+                            icon: Icon(
+                              Icons.call_split,
+                              color: Colors.white,
+                            ),
+                            onPressed: _generateRoute,
+                          ))
+                    ],
+                  ),
                 ],
               ),
+              //Emergency call button
+              Container(
+                padding: EdgeInsets.all(20),
+                child: InkWell(
+                    splashColor: Colors.transparent,
+                    onTap: () => launch('tel://112'),
+                    child:
+                        Image(image: AssetImage('assets/Icon_Emergency.png'))),
+              )
             ],
           ),
-        ],
-      ),
-    ));
+        ));
   }
 }

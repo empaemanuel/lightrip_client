@@ -34,6 +34,8 @@ dependencies:
   flutter_facebook_login: 3.0.0
   firebase_auth:
   google_sign_in: 4.5.1
+  url_launcher: 5.4.10
+  flutter_phone_state: ^0.5.8
 
 
   # The following adds the Cupertino Icons font to your application.
@@ -62,6 +64,7 @@ flutter:
   assets:
   - assets/Lightrip_Logo_no_bg.png
   - assets/map_style.txt
+  - assets/Icon_Emergency.png
 
   
   fonts:

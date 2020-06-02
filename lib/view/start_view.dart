@@ -1,12 +1,10 @@
-import 'package:client/services/facebook_signin_services.dart';
-import 'package:client/view/log_in_vjew.dart';
+import 'package:client/view/sign_in_vjew.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:client/view/email_view.dart';
+import 'package:client/view/sign_up_view.dart';
 import 'package:client/widgets/navigationButton_widget.dart';
 import 'package:client/view/map_page.dart';
 import 'package:client/custom_color.dart';
-import 'package:client/service_locator.dart';
 import 'package:client/log_in.dart';
 
 class StartView extends StatefulWidget {
@@ -15,8 +13,6 @@ class StartView extends StatefulWidget {
 }
 
 class _StartViewState extends State<StartView> {
-  var facebookLogin = locator<facebookSignInServices>();
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -26,11 +22,13 @@ class _StartViewState extends State<StartView> {
           Column(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: <Widget>[
+              // Application logo
               Container(
                   height: 250,
                   width: 250,
                   child: Image(
                       image: AssetImage('assets/Lightrip_Logo_no_bg.png'))),
+              // Welcome text
               Container(
                   child: Text(
                 'Welcome',
@@ -41,6 +39,7 @@ class _StartViewState extends State<StartView> {
               )),
               Column(
                 children: <Widget>[
+                  //Facebook button
                   ButtonTheme(
                     minWidth: 250,
                     height: 40,
@@ -61,6 +60,7 @@ class _StartViewState extends State<StartView> {
                       },
                     ),
                   ),
+                  // TILLFÄLLIG KARTKNAPP, TA BORT INNAN SEMINARIUM!
                   ButtonTheme(
                       minWidth: 250,
                       height: 40,
@@ -74,6 +74,7 @@ class _StartViewState extends State<StartView> {
                                 fontWeight: FontWeight.w500)),
                         navigateTo: MapPage(),
                       )),
+                  //Email button
                   ButtonTheme(
                     minWidth: 250,
                     height: 40,
@@ -90,6 +91,7 @@ class _StartViewState extends State<StartView> {
                   ),
                 ],
               ),
+              //Row with clickable text that navigates to sign up page
               Row(children: <Widget>[
                 Text('Don\'t have an account? ',
                     style: TextStyle(
@@ -105,7 +107,7 @@ class _StartViewState extends State<StartView> {
                             color: new MaterialColor(0xFFE5305A, color),
                             decoration: TextDecoration.underline)),
                     onTap: () {
-                      signInPage(context);
+                      signUpPage(context);
                     })
               ])
             ],
@@ -113,17 +115,10 @@ class _StartViewState extends State<StartView> {
         ]));
   }
 
-  nMapPage(BuildContext context) {
-    if (facebookLogin.isLoggedIn())
-      Navigator.push(context,
-          MaterialPageRoute(builder: (BuildContext context) {
-        return MapPage();
-      }));
+  //Navigates to sign up page
+  void signUpPage(BuildContext context) {
+    Navigator.push(context, MaterialPageRoute(builder: (BuildContext context) {
+      return SignUpView();
+    }));
   }
-}
-
-void signInPage(BuildContext context) {
-  Navigator.push(context, MaterialPageRoute(builder: (BuildContext context) {
-    return EmailView();
-  }));
 }

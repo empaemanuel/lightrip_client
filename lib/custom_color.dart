@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+//Used for custom color codes
 Map<int, Color> color = {
   50: Color.fromRGBO(136, 14, 79, .1),
   100: Color.fromRGBO(136, 14, 79, .2),
