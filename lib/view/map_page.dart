@@ -118,6 +118,8 @@ class _MapPageState extends State<MapPage> {
       throw Exception('Id not found!');
     }
     setState(() {
+      _polylines.clear();
+      _opacityButtons = 0.0;
       _markers = mapServices.getMarkers();
     });
   }
@@ -134,7 +136,6 @@ class _MapPageState extends State<MapPage> {
   }
 
   ///Definition of the search text-field widget.
-
   Widget _googleSearchField(String placeholder, String id) {
     return SearchMapPlaceWidget(
       darkMode: true,
@@ -256,7 +257,7 @@ class _MapPageState extends State<MapPage> {
                               onPressed: () {
                                 _generateRoute();
                                 setState(() {
-                                  opacityButtons = 1.0;
+                                  _opacityButtons = 1.0;
                                 });
                               },
                             ))
@@ -276,54 +277,57 @@ class _MapPageState extends State<MapPage> {
 //                    )
                   ],
                 ),
-                Flexible(flex: 1, fit: FlexFit.tight, child: Container()),
-                Opacity(
-                  opacity: opacityButtons,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      FloatingActionButton(
-                        heroTag: 3,
-                        backgroundColor: colorLow,
-                        child:
-                            Text('Low', style: TextStyle(color: Colors.white)),
-                        onPressed: () {
-                          _showLowRoute();
-                          colorLow = colorOn;
-                          colorMed = colorOff;
-                          colorHigh = colorOff;
-                        },
-                      ),
-                      SizedBox(
-                        width: 5,
-                      ),
-                      FloatingActionButton(
-                          heroTag: 1,
-                          backgroundColor: colorMed,
-                          child: Text("Med"),
+                //Flexible(flex: 1, fit: FlexFit.tight, child: Container()),
+                Container(
+                  alignment: Alignment.bottomCenter,
+                  child: Opacity(
+                    opacity: _opacityButtons,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        FloatingActionButton(
+                          heroTag: 3,
+                          backgroundColor: colorLow,
+                          child:
+                              Text('Low', style: TextStyle(color: Colors.white)),
                           onPressed: () {
-                            _showMediumRoute();
-                            setState(() {
-                              colorLow = colorOff;
-                              colorMed = colorOn;
-                              colorHigh = colorOff;
-                            });
-                          }),
-                      SizedBox(
-                        width: 5,
-                      ),
-                      FloatingActionButton(
-                          heroTag: 2,
-                          backgroundColor: colorHigh,
-                          child: Text("High",
-                              style: TextStyle(color: Colors.white)),
-                          onPressed: () {
-                            _showHighRoute();
+                            _showLowRoute();
+                            colorLow = colorOn;
                             colorMed = colorOff;
-                            colorLow = colorOff;
-                            colorHigh = colorOn;
-                          }),
-                    ],
+                            colorHigh = colorOff;
+                          },
+                        ),
+                        SizedBox(
+                          width: 5,
+                        ),
+                        FloatingActionButton(
+                            heroTag: 1,
+                            backgroundColor: colorMed,
+                            child: Text("Med"),
+                            onPressed: () {
+                              _showMediumRoute();
+                              setState(() {
+                                colorLow = colorOff;
+                                colorMed = colorOn;
+                                colorHigh = colorOff;
+                              });
+                            }),
+                        SizedBox(
+                          width: 5,
+                        ),
+                        FloatingActionButton(
+                            heroTag: 2,
+                            backgroundColor: colorHigh,
+                            child: Text("High",
+                                style: TextStyle(color: Colors.white)),
+                            onPressed: () {
+                              _showHighRoute();
+                              colorMed = colorOff;
+                              colorLow = colorOff;
+                              colorHigh = colorOn;
+                            }),
+                      ],
+                    ),
                   ),
                 ),
                 Positioned(
@@ -345,7 +349,7 @@ class _MapPageState extends State<MapPage> {
             )));
   }
 
-  double opacityButtons = 0.0;
+  double _opacityButtons = 0.0;
 
   _launchCaller() async {
     const url = "tel:112";

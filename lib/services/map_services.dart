@@ -114,8 +114,8 @@ class MapServices{
     final endLng = _to.longitude;
 
     print('fetching route from $startLat, $startLng to $endLat, $endLng');
-    //final server = 'https://lightrip-server.herokuapp.com';
-    final server = 'http://192.168.31.153:8080'; //localhost
+    final server = 'https://lightrip-server.herokuapp.com';
+    //final server = 'http://192.168.31.153:8080'; //localhost
     final api = 'get_route/get_route';
 
     final request = '$server/$api?startLat=$startLat&startLong=$startLng&endLat=$endLat&endLong=$endLng&lightLevel=$lightLevel';
