@@ -8,7 +8,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:client/view/start_view.dart';
 import 'package:search_map_place/search_map_place.dart';
 import 'package:flutter/services.dart' show rootBundle;
-
+import 'package:url_launcher/url_launcher.dart';
 
 class MapPage extends StatefulWidget {
   @override
@@ -27,7 +27,7 @@ class _MapPageState extends State<MapPage> {
   final toID = 'to';
 
   //Start position when opening the map
-  final LatLng _stockholmCenter = LatLng(59.329428,18.068803);
+  final LatLng _stockholmCenter = LatLng(59.329428, 18.068803);
 
   String _mapStyle;
 
@@ -38,18 +38,23 @@ class _MapPageState extends State<MapPage> {
     rootBundle.loadString('assets/map_style.txt').then((string) {
       _mapStyle = string;
     });
+
+    colorLow= colorOn;
+    colorMed= colorOff;
+    colorHigh= colorOff;
   }
 
-  @override
-  void dispose(){
-    super.dispose();
-  }
+//  @override
+//  void dispose(){
+//    super.dispose();
+//  }
 
-  Widget _googleMap(){
+  Widget _googleMap() {
     return GoogleMap(
       onMapCreated: (GoogleMapController controller) {
         controller.setMapStyle(_mapStyle);
-        _mapController.complete(controller);},
+        _mapController.complete(controller);
+      },
       myLocationEnabled: false,
       myLocationButtonEnabled: false,
       zoomControlsEnabled: false,
@@ -61,21 +66,47 @@ class _MapPageState extends State<MapPage> {
       ),
     );
   }
+
   ///generates route and draws it onto the map
-  void _generateRoute() async{
-      Future<Polyline> polylineFuture = mapServices.getPolyline();
-      //_moveCameraToMidPoint();
-      Polyline polyline = await polylineFuture;
-      setState(() {
-        _polylines.add(polyline);
-      });
+  void _generateRoute() async {
+    //Future<Set<Polyline>> s = mapServices.getMockAll();
+    Future<Set<Polyline>> sLow = mapServices.getPolylines(10);
+    Future<Set<Polyline>> sMed = mapServices.getPolylines(7);
+    Future<Set<Polyline>> sHigh = mapServices.getPolylines(5);
+    _moveCameraToMidPoint();
+    _ssLow = await sLow;
+    _ssMed = await sMed;
+    _ssHigh = await sHigh;
+    setState(() {
+      _polylines = _ssLow;
+    });
   }
+
+  void _showLowRoute() {
+    setState(() {
+      _polylines = _ssLow;
+    });
+  }
+
+  void _showMediumRoute() {
+    setState(() {
+      _polylines = _ssMed;
+    });
+  }
+
+  void _showHighRoute() {
+    setState(() {
+      _polylines = _ssHigh;
+    });
+  }
+
+  Set<Polyline> _ssLow, _ssMed, _ssHigh;
 
   ///Adds a marker/pin to the map at the given location.
   void _addPinToMap(LatLng location, String id) {
-    if(id == fromID){
+    if (id == fromID) {
       mapServices.setLocation_From(location);
-    } else if( id == toID){
+    } else if (id == toID) {
       mapServices.setLocation_To(location);
     } else {
       throw Exception('Id not found!');
@@ -94,18 +125,15 @@ class _MapPageState extends State<MapPage> {
 //    });
 //  }
 
-  void _moveCameraToMidPoint() async{
+  void _moveCameraToMidPoint() async {
     final GoogleMapController controller = await _mapController.future;
     LatLng midPoint = mapServices.getMidPoint();
     LatLngBounds bounds = mapServices.getMidPointBounds();
 
-    controller.animateCamera(
-        CameraUpdate.newCameraPosition(
-            CameraPosition(
-                target: midPoint, zoom: 16.0)));
-    controller.animateCamera(CameraUpdate.newLatLngBounds(bounds, 60));
+    controller.animateCamera(CameraUpdate.newCameraPosition(
+        CameraPosition(target: midPoint, zoom: 12.0)));
+    controller.animateCamera(CameraUpdate.newLatLngBounds(bounds, 100));
   }
-
 
 //    setState(() {
 //      _controller = controller;
@@ -121,7 +149,6 @@ class _MapPageState extends State<MapPage> {
 //        endCap: Cap.buttCap,
 //      ));
 
-
   ///Definition of the search text-field widget.
   Widget _googleSearchField(String placeholder, String id) {
     return SearchMapPlaceWidget(
@@ -134,11 +161,8 @@ class _MapPageState extends State<MapPage> {
       onSelected: (Place place) async {
         final geolocation = await place.geolocation;
         final GoogleMapController controller = await _mapController.future;
-        controller.animateCamera(
-            CameraUpdate.newCameraPosition(
-                CameraPosition(
-                    target: geolocation.coordinates,
-                    zoom: 16.0)));
+        controller.animateCamera(CameraUpdate.newCameraPosition(
+            CameraPosition(target: geolocation.coordinates, zoom: 16.0)));
         _addPinToMap(geolocation.coordinates, id);
       },
     );
@@ -147,6 +171,20 @@ class _MapPageState extends State<MapPage> {
   // Needed as reference for opening drawer.
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
+
+  Color colorOff = Colors.blueGrey;
+  Color colorOn = Colors.lightGreen;
+  Color colorLow , colorMed , colorHigh;
+  double opacityButtons = 0.0;
+
+  _launchCaller() async {
+    const url = "tel:112";
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      throw 'Could not launch $url';
+    }
+  }
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -162,119 +200,187 @@ class _MapPageState extends State<MapPage> {
 //          Locale('ar', ''),
 //        ],
         home: Scaffold(
-          resizeToAvoidBottomPadding: false,
-          key: _scaffoldKey,
-          drawer: Drawer(
-              child: Container(
-            color: new MaterialColor(0xFF191a1f, color),
-            child: ListView(
-              children: <Widget>[
-                DrawerHeader(
-                    decoration: BoxDecoration(
-                        color: new MaterialColor(0xFF191a1f, color)),
-                    child: Text('User Profile',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 20.0,
-                            fontFamily: 'Poppins',
-                            fontWeight: FontWeight.w700))),
-                ListTile(
-                    title: Text('Saved routes',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 12.0,
-                            fontFamily: 'Poppins',
-                            fontWeight: FontWeight.w500))),
-                ListTile(
-                    title: Text('Messages',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 12.0,
-                            fontFamily: 'Poppins',
-                            fontWeight: FontWeight.w500))),
-                ListTile(
-                    title: Text('Settings',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.white))),
-                ListTile(
-                    title: Text('Support',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 12.0,
-                            fontFamily: 'Poppins',
-                            fontWeight: FontWeight.w500))),
-                ListTile(
-                    title: Text('Sign out',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 12.0,
-                            fontFamily: 'Poppins',
-                            fontWeight: FontWeight.w500)),
-                    onTap: () => Navigator.push(context,
-                            MaterialPageRoute(builder: (BuildContext context) {
-                          return StartView();
-                        }))),
-              ],
-            ),
-          )),
-          body: Stack(
+      resizeToAvoidBottomPadding: false,
+      key: _scaffoldKey,
+      drawer: Drawer(
+          child: Container(
+        color: new MaterialColor(0xFF191a1f, color),
+        child: ListView(
+          children: <Widget>[
+            DrawerHeader(
+                decoration:
+                    BoxDecoration(color: new MaterialColor(0xFF191a1f, color)),
+                child: Text('User Profile',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 20.0,
+                        fontFamily: 'Poppins',
+                        fontWeight: FontWeight.w700))),
+            ListTile(
+                title: Text('Saved routes',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12.0,
+                        fontFamily: 'Poppins',
+                        fontWeight: FontWeight.w500))),
+//            ListTile(
+//                title: Text('Messages',
+//                    textAlign: TextAlign.center,
+//                    style: TextStyle(
+//                        color: Colors.white,
+//                        fontSize: 12.0,
+//                        fontFamily: 'Poppins',
+//                        fontWeight: FontWeight.w500))),
+            ListTile(
+                title: Text('Settings',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.white))),
+
+            ListTile(
+                title: Text('Support',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12.0,
+                        fontFamily: 'Poppins',
+                        fontWeight: FontWeight.w500))),
+            ListTile(
+                title: Text('Sign out',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12.0,
+                        fontFamily: 'Poppins',
+                        fontWeight: FontWeight.w500)),
+                onTap: () => Navigator.push(context,
+                        MaterialPageRoute(builder: (BuildContext context) {
+                      return StartView();
+                    }))),
+          ],
+        ),
+      )),
+      body: Stack(
+        children: <Widget>[
+          _googleMap(),
+          Column(
             children: <Widget>[
-              _googleMap(),
-              Column(
+              SizedBox(
+                height: 40,
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.max,
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  SizedBox(
-                    height: 40,
-                  ),
-                  Row(
-                    mainAxisSize: MainAxisSize.max,
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      //Drawer button
-                      Container(
-                        width: 50,
-                          height: 50,
-                          alignment: Alignment.center,
-                          child: IconButton(
-                            icon: Icon(
-                              Icons.menu,
-                              color: Colors.white,
-                            ),
-                            onPressed: () => _scaffoldKey.currentState.openDrawer(),
-                          ),
+                  //Drawer button
+                  Container(
+                    width: 50,
+                    height: 50,
+                    alignment: Alignment.center,
+                    child: IconButton(
+                      icon: Icon(
+                        Icons.menu,
+                        color: Colors.white,
                       ),
-                      //Search Boxes
-                      Container(
-                        width: 300,
-                        height: 250,
-                        alignment: Alignment.topCenter,
-                        child: Column(
-                          children: <Widget>[
-                            _googleSearchField('Search From', fromID),
-                            SizedBox(height: 5),
-                            _googleSearchField('Search To', toID),
-                          ],
+                      onPressed: () => _scaffoldKey.currentState.openDrawer(),
+                    ),
+                  ),
+                  //Search Boxes
+                  Container(
+                    width: 300,
+                    height: 250,
+                    alignment: Alignment.topCenter,
+                    child: Column(
+                      children: <Widget>[
+                        _googleSearchField('Search From', fromID),
+                        SizedBox(height: 5),
+                        _googleSearchField('Search To', toID),
+                      ],
+                    ),
+                  ),
+                  Container(
+                      width: 50,
+                      child: IconButton(
+                        icon: Icon(
+                          Icons.call_split,
+                          color: Colors.white,
                         ),
-                      ),
-                      Container(
-                        width: 50,
-                        child: IconButton(
-                          icon: Icon(Icons.call_split, color: Colors.white,),
-                          onPressed: _generateRoute,
-                        )
-                      )
-                    ],
-                  ),
+                        onPressed: () {
+                          _generateRoute();
+                          setState(() {
+                            opacityButtons = 1.0;
+                          });
+                        },
+                      ))
                 ],
               ),
+              Flexible(flex: 1, fit: FlexFit.tight, child: Container()),
+              Opacity(
+                opacity: opacityButtons,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    FloatingActionButton(
+                      heroTag: 3,
+                      backgroundColor: colorLow,
+                      child: Text('Low', style: TextStyle(color: Colors.white)),
+                      onPressed: () {
+                        _showLowRoute();
+                        colorLow = colorOn;
+                        colorMed = colorOff;
+                        colorHigh = colorOff;
+                      },
+                    ),
+                    SizedBox(
+                      width: 5,
+                    ),
+                    FloatingActionButton(
+                        heroTag: 1,
+                        backgroundColor: colorMed,
+                        child: Text("Med"),
+                        onPressed: () {
+                          _showMediumRoute();
+                          setState(() {
+                            colorLow = colorOff;
+                            colorMed = colorOn;
+                            colorHigh = colorOff;
+                          });
+                        }),
+                    SizedBox(
+                      width: 5,
+                    ),
+                    FloatingActionButton(
+                        heroTag: 2,
+                        backgroundColor: colorHigh,
+                        child:
+                            Text("High", style: TextStyle(color: Colors.white)),
+                        onPressed: () {
+                          _showHighRoute();
+                          colorMed = colorOff;
+                          colorLow = colorOff;
+                          colorHigh = colorOn;
+                        }),
+                  ],
+                ),
+              )
             ],
           ),
-        )
-    );
+          Positioned(
+            bottom: 0.0,
+            right: 0.0,
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: IconButton(
+                  icon: Icon(Icons.call, color: Colors.red, size: 30,),
+                  onPressed: () => _launchCaller(),
+                ),
+              ),
+            ),
+        ],
+      ),
+    ));
   }
+
 }

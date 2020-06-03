@@ -10,6 +10,7 @@ import 'package:http/http.dart' as http;
 class MapServices{
   Set<Marker> _markers = Set();
   LatLng _from, _to;
+  int _lightLevel = 9;
 
   /// Takes two geo points and returns midpoint.
   /// https://www.movable-type.co.uk/scripts/latlong.html
@@ -66,7 +67,7 @@ class MapServices{
     return _to;
   }
 
-
+  ///Creates a set of markers from saved positions _from and _to.
   Set<Marker> getMarkers(){
     Set<Marker> tmp = Set();
     if(_from != null ) tmp.add(_getMarker(_from, 'from'));
@@ -84,6 +85,10 @@ class MapServices{
     _to = location;
   }
 
+  setLightLevel(int i) {
+    _lightLevel = i;
+  }
+
   ///Wraps a LatLng obj with a Marker.
   Marker _getMarker(LatLng location, String id){
     Marker marker = Marker(
@@ -93,24 +98,33 @@ class MapServices{
     return marker;
   }
 
-  Future<Polyline> getPolyline() async {
-    List<LatLng> result = await _fetchRoute();
-    _createPolyLine(result, 'route');
+  ///Driver method that fetches a route from server, creates
+  ///polylines for each edge and returns a set of those polylines
+  ///as a future.
+  Future<Set<Polyline>> getPolylines(int lightLevel) async {
+    List<LatLng> result = await _fetchRoute(lightLevel);
+    Polyline p = _createPolyLine(result, 'route', Colors.teal);
+    Set<Polyline> s = Set();
+    s.add(p);
+    print('set of polylines $s');
+    return s;
   }
 
-  Future<List<LatLng>> _fetchRoute() async {
+  ///Fetch route from server based on _from and _to
+  Future<List<LatLng>> _fetchRoute(int lightLevel) async {
     print("loading...");
-//    final startLat = _from.latitude;
-//    final startLng = _from.longitude;
-//    final endLat = _to.latitude;
-//    final endLng = _to.longitude;
-    final startLat = 59.310232;
-    final startLng = 18.0915263;
-    final endLat = 59.3110166;
-    final endLng = 18.0914176;
-    final lightLevel = 9;
-    final server = 'https://lightrip-server.herokuapp.com';
+    final startLat = _from.latitude;
+    final startLng = _from.longitude;
+    final endLat = _to.latitude;
+    final endLng = _to.longitude;
+
+    print('fetching route from $startLat, $startLng to $endLat, $endLng');
+    //final server = 'https://lightrip-server.herokuapp.com';
+    final server = 'http://192.168.31.153:8080';
     final api = 'get_route/get_route';
+
+    //Uri uri = Uri.http("localhost:8080", "/get_route/get_route?startLat=$startLat&startLong=$startLng&endLat=$endLat&endLong=$endLng&lightLevel=$lightLevel");
+
     final request = '$server/$api?startLat=$startLat&startLong=$startLng&endLat=$endLat&endLong=$endLng&lightLevel=$lightLevel';
     print(request);
     final response = await http.get(request);
@@ -122,7 +136,9 @@ class MapServices{
 
       List<LatLng> points = List();
 
+      print(dataMap);
       for (dynamic point in dataMap['route']) {
+        print('Adding ${point['latitude']}, ${point['longitude']} to set');
         points.add(LatLng(point['latitude'], point['longitude']));
       }
       return points;
@@ -132,14 +148,31 @@ class MapServices{
     }
   }
 
-  Future<List<Polyline>> getMockAll() async {
+  ///creates a single polyline from a list of LatLng points.
+  Polyline _createPolyLine(List<LatLng> points, var id, Color color){
+    Polyline polyline = Polyline(
+      polylineId: PolylineId(id),
+      color: Color.fromARGB(255, 40, 122, 198),
+      //color: color,
+      width: 4,
+      points: points,
+      startCap: Cap.roundCap,
+      endCap: Cap.buttCap,
+    );
+    return polyline;
+  }
+
+  ///Method used to get all edges from database, used for tests.
+  Future<Set<Polyline>> getMockAll() async {
     print('loading...');
-    final request = 'https://lightrip-server.herokuapp.com/edge/allEdges';
+    final request = 'https://lightrip-server.herokuapp.com/edge/getByLight?lightWeight=10';
     final response = await http.get(request);
     print('done!');
-    List<Polyline> polylines = List();
+    Set<Polyline> polylines = Set();
     if (response.statusCode == 200) {
-      List data = json.decode(response.body);
+      Map map = json.decode(response.body);
+      List data = map['Edges: '];
+
       num count = 0;
 
       for (Map edge in data) {
@@ -154,7 +187,7 @@ class MapServices{
         List<LatLng> singleEdge = List();
         singleEdge.add(LatLng(latFrom, lngFrom));
         singleEdge.add(LatLng(latTo, lngTo));
-        Polyline polyline = _createPolyLine(singleEdge, count.toString());
+        Polyline polyline = _createPolyLine(singleEdge, count.toString(), Colors.deepPurpleAccent);
         polylines.add(polyline);
         count++;
       }
@@ -186,21 +219,16 @@ class MapServices{
     return points;
   }
 
-  Polyline _createPolyLine(List<LatLng> points, var id){
-    Polyline polyline = Polyline(
-      polylineId: PolylineId(id),
-      color: Color.fromARGB(255, 40, 122, 198),
-      width: 4,
-      points: points,
-      startCap: Cap.roundCap,
-      endCap: Cap.buttCap,
-    );
-    return polyline;
-  }
 
-  getPolylines() {
 
-  }
+
+
+//  getPolylines() async {
+//    Future<Polyline> polylineFuture = _getPolyline();
+//    //_moveCameraToMidPoint();
+//    Polyline polyline = await polylineFuture;
+//    return _polylines;
+//  }
 
 
 
