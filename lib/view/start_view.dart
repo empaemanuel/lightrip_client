@@ -6,6 +6,7 @@ import 'package:client/widgets/navigationButton_widget.dart';
 import 'package:client/view/map_page.dart';
 import 'package:client/custom_color.dart';
 import 'package:client/log_in.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class StartView extends StatefulWidget {
   @override
@@ -13,6 +14,26 @@ class StartView extends StatefulWidget {
 }
 
 class _StartViewState extends State<StartView> {
+  void _askPermission() async {
+    Map<Permission, PermissionStatus> statuses = await [
+      Permission.location,
+      Permission.phone,
+    ].request();
+
+//    var permissions = await PHandler.Permission.location
+//        .request(); //ask for permission to use location
+//    if (permissions == PHandler.PermissionStatus.granted) { //if its granted do this
+//
+//    }
+  }
+
+  @override
+  void initState() {
+    _askPermission();
+    super.initState();
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
