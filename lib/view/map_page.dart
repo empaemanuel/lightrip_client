@@ -1,13 +1,11 @@
 import 'dart:async';
 import 'package:client/custom_color.dart';
 import 'package:client/services/map_services.dart';
-import 'package:permission_handler/permission_handler.dart' as PHandler;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:client/view/start_view.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:sms/sms.dart';
 import 'package:search_map_place/search_map_place.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
@@ -53,7 +51,6 @@ class _MapPageState extends State<MapPage> {
 //  void dispose(){
 //    super.dispose();
 //  }
-
 
   Widget _googleMap() {
     return GoogleMap(
@@ -237,7 +234,6 @@ class _MapPageState extends State<MapPage> {
                         //Search Boxes
                         Container(
                           width: 300,
-                          //height: 250,
                           alignment: Alignment.topCenter,
                           child: Column(
                             children: <Widget>[
@@ -263,21 +259,8 @@ class _MapPageState extends State<MapPage> {
                             ))
                       ],
                     ),
-                    //Emergency call button
-//                    Container(
-//                      padding: EdgeInsets.all(20),
-//                      child: InkWell(
-//                          splashColor: Colors.transparent,
-//                          onTap: () {
-//                            sendSms();
-//                            launch('tel://112');
-//                          },
-//                          child: Image(
-//                              image: AssetImage('assets/Icon_Emergency.png'))),
-//                    )
                   ],
                 ),
-                //Flexible(flex: 1, fit: FlexFit.tight, child: Container()),
                 Container(
                   alignment: Alignment.bottomCenter,
                   child: Opacity(
@@ -288,8 +271,8 @@ class _MapPageState extends State<MapPage> {
                         FloatingActionButton(
                           heroTag: 3,
                           backgroundColor: colorLow,
-                          child:
-                              Text('Low', style: TextStyle(color: Colors.white)),
+                          child: Text('Low',
+                              style: TextStyle(color: Colors.white)),
                           onPressed: () {
                             _showLowRoute();
                             colorLow = colorOn;
@@ -359,20 +342,4 @@ class _MapPageState extends State<MapPage> {
       throw 'Could not launch $url';
     }
   }
-}
-
-void sendSms() {
-  SmsSender sender = new SmsSender();
-  String number = "12343567";
-
-  SmsMessage message = new SmsMessage(number, "Help, i\'m in danger!");
-
-  message.onStateChanged.listen((state) {
-    if (state == SmsMessageState.Sent) {
-      print("SMS is sent!");
-    } else if (state == SmsMessageState.Delivered) {
-      print("SMS is delivered!");
-    }
-  });
-  sender.sendSms(message);
 }
