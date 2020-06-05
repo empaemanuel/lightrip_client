@@ -8,6 +8,5 @@ The test area is shown at 'testarea.png'.
 
 example of intersting searches:
 
-from:				to:
-Folkungagatan 50 	Gaveliusgatan
-Skånegatan 114		Ljusterögatan
+from: Folkungagatan 50, to: Gaveliusgatan.
+from: Skånegatan 114 (my location), to: Ljusterögatan.
