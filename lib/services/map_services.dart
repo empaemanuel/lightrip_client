@@ -21,8 +21,11 @@ class MapServices{
     num bx = cos(fromLat) * cos(dLon);
     num by = cos(fromLat) * sin(dLon);
     num midLat = atan2(sin(fromLat) + sin(toLat),
-        sqrt((cos(toLat) + bx) * (cos(toLat) + bx) + by * bx));
+        sqrt((cos(toLat) + bx) * (cos(toLat) + bx) + by * by));
     num midLon = toLon + atan2(by, cos(toLat) + bx);
+
+    midLat = midLat * 180 / pi;
+    midLon = midLon * 180 / pi;
 
     LatLng midPoint = LatLng(midLat, midLon);
 
