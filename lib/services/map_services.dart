@@ -160,9 +160,10 @@ class MapServices{
   }
 
   ///Method used during development to print all edges in test area to map.
-  Future<Set<Polyline>> _getMockAll() async {
+  Future<Set<Polyline>>getMockAll() async {
     print('loading...');
-    final request = 'https://lightrip-server.herokuapp.com/edge/getByLight?lightWeight=10';
+    String server = StartApp.server;
+    final request = '$server/edge/getByLight?lightWeight=10';
     final response = await http.get(request);
     print('done!');
     Set<Polyline> polylines = Set();
