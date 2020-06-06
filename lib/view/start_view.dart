@@ -3,9 +3,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:client/view/sign_up_view.dart';
 import 'package:client/widgets/navigationButton_widget.dart';
-import 'package:client/view/map_page.dart';
 import 'package:client/custom_color.dart';
 import 'package:client/log_in.dart';
+import 'package:client/services/permissions_services.dart';
 
 class StartView extends StatefulWidget {
   @override
@@ -13,6 +13,12 @@ class StartView extends StatefulWidget {
 }
 
 class _StartViewState extends State<StartView> {
+  @override
+  void initState() {
+    PermissionServices.checkPermissions();
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

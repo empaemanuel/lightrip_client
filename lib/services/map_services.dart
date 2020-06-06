@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:search_map_place/search_map_place.dart';
 import 'package:http/http.dart' as http;
+import 'package:get_ip/get_ip.dart';
+import 'package:client/main.dart';
 
 class MapServices{
   LatLng _from, _to;
@@ -100,6 +102,9 @@ class MapServices{
   ///polylines for each edge and returns a set of those polylines
   ///as a future.
   Future<Set<Polyline>> getPolylines(int lightLevel) async {
+    if(_from == null || _to == null){
+      return Set();
+    }
     List<LatLng> result = await _fetchRoute(lightLevel);
     Polyline p = _createPolyLine(result, 'route', Colors.teal);
     Set<Polyline> s = Set();
@@ -110,15 +115,14 @@ class MapServices{
 
   ///Fetch route from server based on _from and _to
   Future<List<LatLng>> _fetchRoute(int lightLevel) async {
-    print("loading...");
+    String server = StartApp.server;
     final startLat = _from.latitude;
     final startLng = _from.longitude;
     final endLat = _to.latitude;
     final endLng = _to.longitude;
 
     print('fetching route from $startLat, $startLng to $endLat, $endLng');
-    final server = 'https://lightrip-server.herokuapp.com';
-    //final server = 'http://192.168.31.153:8080'; //localhost
+
     final api = 'get_route/get_route';
 
     final request = '$server/$api?startLat=$startLat&startLong=$startLng&endLat=$endLat&endLong=$endLng&lightLevel=$lightLevel';
@@ -159,9 +163,10 @@ class MapServices{
   }
 
   ///Method used during development to print all edges in test area to map.
-  Future<Set<Polyline>> _getMockAll() async {
+  Future<Set<Polyline>>getMockAll() async {
     print('loading...');
-    final request = 'https://lightrip-server.herokuapp.com/edge/getByLight?lightWeight=10';
+    String server = StartApp.server;
+    final request = '$server/edge/getByLight?lightWeight=10';
     final response = await http.get(request);
     print('done!');
     Set<Polyline> polylines = Set();

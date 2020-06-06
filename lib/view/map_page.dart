@@ -5,10 +5,16 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:client/view/start_view.dart';
+import 'package:location/location.dart';
+import 'package:sms/sms.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:search_map_place/search_map_place.dart';
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:client/services/permissions_services.dart';
 
+///This class handles the map and it's buttons by using GoogleMap
+///_generateRoute() is used to get the route route from server.
+///services/map_services.dart handles logic.
 class MapPage extends StatefulWidget {
   @override
   _MapPageState createState() => _MapPageState();
@@ -32,25 +38,22 @@ class _MapPageState extends State<MapPage> {
   //Describes look of the map
   String _mapStyle;
 
+  bool _isLocationGranted;
+
   @override
   void initState() {
-    super.initState();
-
+    _isLocationGranted = PermissionServices.isLocationGranted();
     //Sets style of map
     rootBundle.loadString('assets/map_style.txt').then((string) {
       _mapStyle = string;
     });
-
     //Sets default states (colors) of light level buttons.
-    colorLow = colorOn;
-    colorMed = colorOff;
+    colorLow = colorOff;
+    colorMid = colorOff;
     colorHigh = colorOff;
+    super.initState();
   }
 
-//  @override
-//  void dispose(){
-//    super.dispose();
-//  }
 
   Widget _googleMap() {
     return GoogleMap(
@@ -58,9 +61,12 @@ class _MapPageState extends State<MapPage> {
         controller.setMapStyle(_mapStyle);
         _mapController.complete(controller);
       },
-      myLocationEnabled: false,
+      myLocationEnabled: _isLocationGranted,
       myLocationButtonEnabled: false,
+      compassEnabled: false,
+      mapToolbarEnabled: false,
       zoomControlsEnabled: false,
+      padding: EdgeInsets.only(top: 100),
       markers: _markers,
       polylines: _polylines,
       initialCameraPosition: CameraPosition(
@@ -70,40 +76,122 @@ class _MapPageState extends State<MapPage> {
     );
   }
 
+  bool _isLoading = false;
+
+  _setProgressToLoading(){
+    setState(() {
+      _isLoading = true;
+    });
+  }
+
+  _setProgressToDone(){
+    setState(() {
+      _isLoading = false;
+    });
+  }
+
+  void _clearRoutes(){
+    setState(() {
+      colorLow = disableColor;
+      colorMid = disableColor;
+      colorHigh = disableColor;
+      if(_polylines != null) _polylines.clear();
+      _opacityButtons = 0.0;
+      _polyLinesLow = Set();
+      _polyLinesMid = Set();
+      _polyLinesHigh = Set();
+    });
+  }
+
   ///generates route and draws it onto the map
   void _generateRoute() async {
+    if (mapServices
+        .getMarkers()
+        .length < 2) return;
+    _clearRoutes();
     //Future<Set<Polyline>> s = mapServices.getMockAll();
-    Future<Set<Polyline>> sLow = mapServices.getPolylines(10);
-    Future<Set<Polyline>> sMed = mapServices.getPolylines(7);
-    Future<Set<Polyline>> sHigh = mapServices.getPolylines(5);
+    Future<Set<Polyline>> futurePolyLinesLow = mapServices.getPolylines(10);
+    Future<Set<Polyline>> futurePolyLinesMid = mapServices.getPolylines(7);
+    Future<Set<Polyline>> futurePolyLinesHigh = mapServices.getPolylines(5);
+
     _moveCameraToMidPoint();
-    _ssLow = await sLow;
-    _ssMed = await sMed;
-    _ssHigh = await sHigh;
+    _setProgressToLoading();
+
+    _polyLinesLow = await futurePolyLinesLow;
+    _polyLinesMid = await futurePolyLinesMid;
+    _polyLinesHigh = await futurePolyLinesHigh;
+
+    _setProgressToDone();
+    _showLightLevelButtons();
+  }
+
+  void _generateAllRoutes() async{
+    _setProgressToLoading();
+    _polyLinesLow = await mapServices.getMockAll();
+
+    _setProgressToDone();
+    _showLightLevelButtons();
+  }
+  
+  double _opacityButtons = 0.0;
+
+  _launchCaller() async {
+    if (await PermissionServices.isPhoneGrantedCheck()) {
+      const url = "tel:112";
+      if (await canLaunch(url)) {
+        await launch(url);
+      } else {
+        throw 'Could not launch $url';
+      }
+    }
+  }
+
+  void _showLightLevelButtons() {
     setState(() {
-      _polylines = _ssLow;
+      _opacityButtons = 1.0;
+      if(_polyLinesLow == null) {
+        _lowEnabled = false;
+        colorLow = disableColor;
+      } else {
+        _lowEnabled = true;
+        colorLow = colorOff;
+      }
+      if(_polyLinesMid == null) {
+        _midEnabled = false;
+        colorMid = disableColor;
+      } else {
+        _midEnabled = true;
+        colorMid = colorOff;
+      }
+      if(_polyLinesHigh == null) {
+        _highEnabled = false;
+        colorHigh = disableColor;
+      } else {
+        _highEnabled = true;
+        colorHigh = colorOff;
+      }
     });
   }
 
-  void _showLowRoute() {
-    setState(() {
-      _polylines = _ssLow;
+  bool _lowEnabled, _midEnabled, _highEnabled;
+
+  void sendSms() {
+    SmsSender sender = new SmsSender();
+    String number = "12343567";
+
+    SmsMessage message = new SmsMessage(number, "Help, i\'m in danger!");
+
+    message.onStateChanged.listen((state) {
+      if (state == SmsMessageState.Sent) {
+        print("SMS is sent!");
+      } else if (state == SmsMessageState.Delivered) {
+        print("SMS is delivered!");
+      }
     });
+    sender.sendSms(message);
   }
 
-  void _showMediumRoute() {
-    setState(() {
-      _polylines = _ssMed;
-    });
-  }
-
-  void _showHighRoute() {
-    setState(() {
-      _polylines = _ssHigh;
-    });
-  }
-
-  Set<Polyline> _ssLow, _ssMed, _ssHigh;
+  Set<Polyline> _polyLinesLow, _polyLinesMid, _polyLinesHigh;
 
   ///Adds a marker/pin to the map at the given location.
   void _addPinToMap(LatLng location, String id) {
@@ -115,8 +203,7 @@ class _MapPageState extends State<MapPage> {
       throw Exception('Id not found!');
     }
     setState(() {
-      _polylines.clear();
-      _opacityButtons = 0.0;
+      _clearRoutes();
       _markers = mapServices.getMarkers();
     });
   }
@@ -126,7 +213,7 @@ class _MapPageState extends State<MapPage> {
     final GoogleMapController controller = await _mapController.future;
     LatLng midPoint = mapServices.getMidPoint();
     LatLngBounds bounds = mapServices.getMidPointBounds();
-
+    print('midpoint: $midPoint');
     controller.animateCamera(CameraUpdate.newCameraPosition(
         CameraPosition(target: midPoint, zoom: 12.0)));
     controller.animateCamera(CameraUpdate.newLatLngBounds(bounds, 100));
@@ -151,12 +238,47 @@ class _MapPageState extends State<MapPage> {
     );
   }
 
+  ///Positions camera to current position and uses it as Pin on map
+  void _currentLocation() async {
+    if (await PermissionServices.isLocationGrantedCheck()) {
+      setState(() {
+        _isLocationGranted = true;
+      });
+      final GoogleMapController controller = await _mapController.future;
+      LocationData currentLocation;
+      var location = new Location();
+      try {
+        currentLocation = await location.getLocation();
+      } on Exception {
+        currentLocation = null;
+      }
+
+      controller.animateCamera(CameraUpdate.newCameraPosition(
+        CameraPosition(
+          bearing: 0,
+          target: LatLng(currentLocation.latitude, currentLocation.longitude),
+          zoom: 16.0,
+        ),
+      ));
+
+      LocationData loc = await location.getLocation();
+      LatLng current = LatLng(loc.latitude, loc.longitude);
+      _addPinToMap(current, 'from');
+      setState(() {
+        _searchFromText = "My Location";
+      });
+    }
+  }
+
   // Needed as reference for opening drawer.
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
+  var _searchFromText = 'Search From';
+
   Color colorOff = Colors.blueGrey;
-  Color colorOn = Colors.lightGreen;
-  Color colorLow, colorMed, colorHigh;
+  Color colorOn = Colors.blue;
+  Color colorLow, colorMid, colorHigh;
+  Color disableColor = Colors.grey;
 
   @override
   Widget build(BuildContext context) {
@@ -195,10 +317,11 @@ class _MapPageState extends State<MapPage> {
                               fontFamily: 'Poppins',
                               fontWeight: FontWeight.w500),
                         ),
-                        onTap: () => Navigator.push(context, MaterialPageRoute(
+                        onTap: () =>
+                            Navigator.push(context, MaterialPageRoute(
                                 builder: (BuildContext context) {
-                              return StartView();
-                            }))),
+                                  return StartView();
+                                }))),
                   ],
                 ),
               ),
@@ -219,7 +342,7 @@ class _MapPageState extends State<MapPage> {
                       children: <Widget>[
                         //Drawer button
                         Container(
-                          width: 50,
+                          //width: 50,
                           height: 50,
                           alignment: Alignment.center,
                           child: IconButton(
@@ -233,16 +356,11 @@ class _MapPageState extends State<MapPage> {
                         ),
                         //Search Boxes
                         Container(
-                          width: 300,
+                          width: 280,
                           alignment: Alignment.topCenter,
-                          child: Column(
-                            children: <Widget>[
-                              _googleSearchField('Search From', fromID),
-                              SizedBox(height: 5),
-                              _googleSearchField('Search To', toID),
-                            ],
-                          ),
+                          child: _googleSearchField(_searchFromText, fromID),
                         ),
+                        //Generate route button
                         Container(
                             width: 50,
                             child: IconButton(
@@ -252,11 +370,36 @@ class _MapPageState extends State<MapPage> {
                               ),
                               onPressed: () {
                                 _generateRoute();
-                                setState(() {
-                                  _opacityButtons = 1.0;
-                                });
+                                // to print all edges on map, use below.
+                                //_generateAllRoutes();
                               },
                             ))
+                      ],
+                    ),
+                    SizedBox(
+                      height: 5,
+                    ),
+                    Row(
+                      mainAxisSize: MainAxisSize.max,
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Container(
+                          width: 50,
+                          height: 50,
+                        ),
+                        Container(
+                            width: 280,
+                            alignment: Alignment.topCenter,
+                            child: _googleSearchField('Search To', toID)),
+                        Container(
+                          width: 50,
+                          child: IconButton(
+                            icon: Icon(Icons.my_location),
+                            color: Colors.white,
+                            onPressed: _currentLocation,
+                          ),
+                        ),
                       ],
                     ),
                   ],
@@ -265,50 +408,65 @@ class _MapPageState extends State<MapPage> {
                   alignment: Alignment.bottomCenter,
                   child: Opacity(
                     opacity: _opacityButtons,
+                    //opacity: 1.0,
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
                         FloatingActionButton(
-                          heroTag: 3,
+                          heroTag: "low",
                           backgroundColor: colorLow,
-                          child: Text('Low',
-                              style: TextStyle(color: Colors.white)),
+                          child: Text(
+                              'Low', style: TextStyle(color: Colors.white)),
                           onPressed: () {
-                            _showLowRoute();
-                            colorLow = colorOn;
-                            colorMed = colorOff;
-                            colorHigh = colorOff;
+                            if(_lowEnabled) {
+                              setState(() {
+                                colorLow = colorOn;
+                                colorMid = colorOff;
+                                colorHigh = colorOff;
+                                _polylines = _polyLinesLow;
+                              });
+                            }
                           },
                         ),
                         SizedBox(
-                          width: 5,
+                          width: 10,
                         ),
                         FloatingActionButton(
-                            heroTag: 1,
-                            backgroundColor: colorMed,
-                            child: Text("Med"),
-                            onPressed: () {
-                              _showMediumRoute();
+                          heroTag: "mid",
+                          backgroundColor: colorMid,
+                          child: Text(
+                              'Mid', style: TextStyle(color: Colors.white)),
+                          onPressed: () {
+                            if(_midEnabled){
+                            setState(() {
+
+                              colorLow = colorOff;
+                              colorMid = colorOn;
+                              colorHigh = colorOff;
+                              _polylines = _polyLinesMid;
+                            });
+                            }
+                          },
+                        ),
+                        SizedBox(
+                          width: 10,
+                        ),
+                        FloatingActionButton(
+                          heroTag: "high",
+                          backgroundColor: colorHigh,
+                          child: Text(
+                              'High', style: TextStyle(color: Colors.white)),
+                          onPressed: () {
+                            if(_highEnabled) {
                               setState(() {
                                 colorLow = colorOff;
-                                colorMed = colorOn;
-                                colorHigh = colorOff;
+                                colorMid = colorOff;
+                                colorHigh = colorOn;
+                                _polylines = _polyLinesHigh;
                               });
-                            }),
-                        SizedBox(
-                          width: 5,
+                            }
+                          },
                         ),
-                        FloatingActionButton(
-                            heroTag: 2,
-                            backgroundColor: colorHigh,
-                            child: Text("High",
-                                style: TextStyle(color: Colors.white)),
-                            onPressed: () {
-                              _showHighRoute();
-                              colorMed = colorOff;
-                              colorLow = colorOff;
-                              colorHigh = colorOn;
-                            }),
                       ],
                     ),
                   ),
@@ -327,19 +485,10 @@ class _MapPageState extends State<MapPage> {
                       onPressed: () => _launchCaller(),
                     ),
                   ),
-                )
+                ),
+                  _isLoading ? Center(child: CircularProgressIndicator(value: null)): SizedBox()
               ],
             )));
   }
-
-  double _opacityButtons = 0.0;
-
-  _launchCaller() async {
-    const url = "tel:112";
-    if (await canLaunch(url)) {
-      await launch(url);
-    } else {
-      throw 'Could not launch $url';
-    }
-  }
 }
+
